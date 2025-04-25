@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TUSAŞ - Technological Radar</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: "Segoe UI", sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+        }
+        header img {
+            height: 40px;
+            margin-right: 1rem;
+        }
+        header h1 {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+        main {
+            flex: 1;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+        #main {
+            display: flex;
+            padding: 1rem;
+        }
+        .sidebar {
+            width: 200px;
+            background: white;
+            border-right: 1px solid #ccc;
+            padding: 1rem;
+        }
+        .sidebar h2 {
+            font-size: 1rem;
+            margin-top: 0;
+            color: #003366;
+        }
+        .trend-btn {
+            display: block;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            background: #e0e0e0;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+        .trend-btn.active {
+            background: #003366;
+            color: white;
+        }
+        .chart-section {
+            flex: 1;
+            position: relative;
+            background: white;
+            margin-left: 1rem;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .chart-container {
+            width: 100%;
+            height: 500px;
+        }
+        .driver-list {
+            margin: 1rem;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .driver-list h2 {
+            margin-top: 0;
+            color: #003366;
+        }
+        .driver-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        .driver-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ccc;
+        }
+        .driver-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f6/TUSA%C5%9E_logo.svg" alt="TUSAŞ Logo" />
+    <h1>Technological Radar</h1>
+</header>
+<main>
+    <div id="main">
+        <div class="sidebar">
+            <h2>Mega Trends</h2>
+            <button class="trend-btn active" onclick="onTrendClick(this, 'Defence')">Defence</button>
+            <button class="trend-btn" onclick="onTrendClick(this, 'Aviation')">Aviation</button>
+        </div>
+        <div class="chart-section">
+            <div class="chart-container" id="chart-container"></div>
+        </div>
+    </div>
+    <section class="driver-list" id="driver-list-section">
+        <h2 id="driver-title">Drivers of Defence</h2>
+        <ul id="driver-list"></ul>
+    </section>
+</main>
+<script>
+    async function fetchChartData() {
+        const res = await fetch("/api/drivers/average-impacts");
+        return res.ok ? res.json() : [];
+    }
+
+    async function fetchDrivers(trend) {
+        try {
+            const res = await fetch(`/api/drivers/by-trend?trend=${encodeURIComponent(trend)}`);
+            return res.ok ? res.json() : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function renderChart(data) {
+        const chart = echarts.init(document.getElementById("chart-container"));
+        const trends = data.map(d => d.trend);
+        const points = data.map((d, i) => [d.averageImpact, i]);
+
+        const option = {
+            title: {
+                text: 'Technological Trends - Average Impact',
+                left: 'center'
+            },
+            polar: {
+                radius: ['25%', '65%']
+            },
+            angleAxis: {
+                type: 'category',
+                data: trends,
+                startAngle: 90,
+                axisLabel: {
+                    interval: 0,
+                    rotate: function (index) {
+                        const angle = (360 / trends.length) * index;
+                        return angle > 180 ? angle - 180 : angle;
+                    },
+                    fontSize: 10,
+                    margin: 20
+                }
+            },
+            radiusAxis: {
+                type: 'value',
+                min: 0,
+                max: 5,
+                splitLine: {
+                    lineStyle: {
+                        type: 'dotted'
+                    }
+                }
+            },
+            tooltip: {
+                formatter: p => `${trends[p.value[1]]}<br/>Avg Impact: ${p.value[0].toFixed(2)}`
+            },
+            series: [
+                {
+                    type: 'scatter',
+                    coordinateSystem: 'polar',
+                    symbolSize: 12,
+                    data: points,
+                    itemStyle: {
+                        color: '#003366'
+                    }
+                },
+                {
+                    type: 'custom',
+                    coordinateSystem: 'polar',
+                    renderItem: function (params, api) {
+                        const idx = api.value(1);
+                        const p1 = api.coord([0, idx]);
+                        const p2 = api.coord([api.value(0), idx]);
+                        return {
+                            type: 'line',
+                            shape: {
+                                x1: p1[0],
+                                y1: p1[1],
+                                x2: p2[0],
+                                y2: p2[1]
+                            },
+                            style: {
+                                stroke: '#aaa',
+                                lineWidth: 1,
+                                opacity: 0.7
+                            }
+                        };
+                    },
+                    data: points.map((d, i) => [d[0], i])
+                }
+            ],
+            labelLayout: {
+                hideOverlap: true,
+                moveOverlap: 'shiftY'
+            }
+        };
+
+        chart.setOption(option);
+
+        chart.off('click');
+        chart.on('click', async params => {
+            const idx = params.value[1];
+            const trend = trends[idx];
+            document.querySelectorAll('.trend-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === trend));
+            await onTrendClick(null, trend);
+        });
+    }
+
+
+    async function onTrendClick(button, trend) {
+        document.querySelectorAll(  '.trend-btn').forEach(btn => btn.classList.toggle('active', btn === button || btn.textContent === trend));
+        const list = document.getElementById('driver-list');
+        document.getElementById('driver-title').textContent = `Drivers of ${trend}`;
+        list.innerHTML = '';
+        (await fetchDrivers(trend)).forEach(d => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${d.driver}</strong><br/>Impact: <input type="number" min="0" max="5" step="0.1" value="${d.impact || ''}" /><br/>Uncertainty: <input type="number" min="0" max="5" step="0.1" value="${d.uncertainty || ''}" />`;
+            list.appendChild(li);
+        });
+    }
+
+    (async () => {
+        const data = await fetchChartData();
+        renderChart(data.slice(0, 70));
+        await onTrendClick(null, 'Defence');
+    })();
+</script>
+</body>
+</html>

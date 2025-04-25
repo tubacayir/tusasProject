@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzman Kayıt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #eef2f3;
+        }
+        .register-container {
+            width: 400px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .register-container h1 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .register-container input {
+            width: 100%;
+            padding: 5px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .register-container button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .register-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .register-container .info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .register-container .info a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .register-container .info a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Tai_logo.png/800px-Tai_logo.png" alt="TUSAŞ Logo">
+<div class="register-container">
+    <h1>Uzman Kayıt</h1>
+
+    <form id="registerForm" onsubmit="return validateForm()">
+        <input type="text" id="firstName" name="firstName" placeholder="İsim" required>
+        <input type="text" id="lastName" name="lastName" placeholder="Soyisim" required>
+        <input type="email" id="email" name="email" placeholder="E-posta" required>
+        <input type="text" id="expertise" name="expertise" placeholder="Uzmanlık Alanı" required>
+        <input type="password" id="password" name="password" placeholder="Şifre" required>
+        <button type="submit">Kayıt Ol</button>
+        <div class="error-message" id="error-message"></div>
+    </form>
+    <div class="info">
+        <p>Zaten hesabınız var mı? <a href="/expert-login">Giriş yap</a></p>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        // Get the input values
+        var firstName = document.getElementById("firstName").value;
+        var lastName = document.getElementById("lastName").value;
+        var email = document.getElementById("email").value;
+        var expertise = document.getElementById("expertise").value;
+        var password = document.getElementById("password").value;
+        var errorMessage = document.getElementById("error-message");
+        errorMessage.textContent = "";
+
+        // Basic validation for empty fields
+        if (firstName.trim() === "") {
+            errorMessage.textContent = "İsim boş olamaz!";
+            return false;
+        }
+
+        if (lastName.trim() === "") {
+            errorMessage.textContent = "Soyisim boş olamaz!";
+            return false;
+        }
+
+        if (email.trim() === "") {
+            errorMessage.textContent = "E-posta adresi boş olamaz!";
+            return false;
+        }
+
+        if (expertise.trim() === "") {
+            errorMessage.textContent = "Uzmanlık alanı boş olamaz!";
+            return false;
+        }
+
+        if (password.trim() === "") {
+            errorMessage.textContent = "Şifre boş olamaz!";
+            return false;
+        }
+
+        // Check for a valid email format using regular expression
+        var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailPattern.test(email)) {
+            errorMessage.textContent = "Geçerli bir e-posta adresi girin!";
+            return false;
+        }
+
+        // Optionally, add more validation for the password (e.g., length, complexity)
+        if (password.length < 6) {
+            errorMessage.textContent = "Şifre en az 6 karakter olmalıdır!";
+            return false;
+        }
+
+        // If all validations pass, submit the form using fetch
+        submitForm(firstName, lastName, email, expertise, password);
+
+        // Prevent default form submission
+        return false;
+    }
+
+
+    function submitForm(firstName, lastName, email, expertise, password) {
+        var formData = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            expertise: expertise,
+            password: password
+        };
+
+        fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Status 200-299 arası ise başarılı
+                    alert('Kayıt başarılı!');
+                    window.location.href = "/";
+                } else if (response.status === 400) {
+                    // Validation hatası
+                    alert('Hatalı istek: Lütfen bilgilerinizi kontrol edin.');
+                } else if (response.status === 500) {
+                    // Sunucu hatası
+                    alert('Sunucu hatası: Lütfen daha sonra tekrar deneyin.');
+                } else {
+                    // Diğer durumlar
+                    alert('Bilinmeyen bir hata oluştu. Status: ' + response.status);
+                }
+            })
+              .catch(error => {
+                alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+                console.error('Error:', error);
+            });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUSAŞ</title>
+    <style>
+        /* Genel Stiller */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: #003366; /* TUSAŞ mavi tonu */
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 1rem;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        /* Hero Bölümü - Logo ve Tanıtım */
+        .hero {
+            height: 150px; /* Yüksekliği küçük tutalım */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            background-color: #003366; /* TUSAŞ mavi tonu */
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            color: white;
+        }
+
+        /* İçerik Bölümü */
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 50px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .intro {
+            width: 50%; /* Yarı genişlikte */
+        }
+
+        .intro h3 {
+            font-size: 1.8rem;
+            color: #003366;
+        }
+
+        .intro p {
+            font-size: 1.2rem;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .image {
+            width: 45%;
+        }
+
+        .image img {
+            width: 100%;
+            height: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="navbar">
+    <div class="logo">
+        <h2>TUSAŞ</h2>
+    </div>
+    <div>
+        <a th:href="@{/register}" class="btn">Kayıt ol</a>
+        <a th:href="@{/expertLogin}" class="btn">Uzman Girişi</a>
+        <a th:href="@{/managerLogin}" class="btn">Analist Girişi</a>
+    </div>
+</div>
+
+<!-- Hero Bölümü - Logo ve Tanıtım -->
+<div class="hero">
+    <h1>Gelecek Senaryoları Yazım Aracı</h1>
+</div>
+
+<!-- İçerik Bölümü -->
+<div class="container">
+    <!-- Tanıtım Yazısı -->
+    <div class="intro">
+        <h3>Projenin Amacı</h3>
+        <p>
+            TUSAŞ Gelecek Senaryoları Yazım Aracı, teknoloji uzmanlarının gelecekteki gelişmeleri
+            öngörerek yenilikçi senaryolar oluşturmasına olanak tanır. Bu platform, uzman görüşlerini
+            toplar ve bu verilerle geleceğe dair stratejik yönelimler belirlemek için kullanılabilecek
+            güçlü bir kaynak sunar.
+        </p>
+    </div>
+    <div class="image">
+        <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo">
+    </div>
+</div>
+</body>
+</html>
