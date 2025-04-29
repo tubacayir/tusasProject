@@ -1,66 +1,73 @@
 package com.example.TusasProject.controller;
 
+
 import com.example.TusasProject.dto.DriverDTO;
 import com.example.TusasProject.dto.TrendImpactDTO;
-import com.example.TusasProject.service.ExcelService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.TusasProject.entity.Driver;
+import com.example.TusasProject.entity.Trend;
+import com.example.TusasProject.repository.DriverRepository;
+import com.example.TusasProject.repository.TrendRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/drivers")
+@RequiredArgsConstructor
 public class DriverController {
 
-    @Autowired
-    private ExcelService excelService;
+    private final DriverRepository driverRepository;
+    private final TrendRepository trendRepository;
 
+    // Tüm driverları getir
     @GetMapping
-    public List<DriverDTO> getDrivers() throws IOException {
-        return excelService.readExcelDrivers("/Users/tubacayir/IdeaProjects/TusasProject/src/main/resources/Drivers.xlsx");
+    public List<Driver> getAllDrivers() {
+        return driverRepository.findAll();
     }
-    @GetMapping("/average-impacts")
-    public List<TrendImpactDTO> getAverageImpactPerTrend() throws IOException {
-        List<DriverDTO> allDrivers = excelService.readExcelDrivers("/Users/tubacayir/IdeaProjects/TusasProject/src/main/resources/Drivers.xlsx");
 
-        Map<String, List<Double>> trendImpacts = new HashMap<>();
-
-        for (DriverDTO driver : allDrivers) {
-            // We group all impacts by their trend (no domain filtering!)
-            trendImpacts
-                    .computeIfAbsent(driver.getTrend(), k -> new ArrayList<>())
-                    .add(driver.getImpact());
-        }
-
-        List<TrendImpactDTO> result = new ArrayList<>();
-        for (Map.Entry<String, List<Double>> entry : trendImpacts.entrySet()) {
-            double avg = entry.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            result.add(new TrendImpactDTO(entry.getKey(), avg));
-        }
-
-        return result;
-    }
+    // Belirli bir trend'e ait driverları getir
     @GetMapping("/by-trend")
-    public List<DriverDTO> getDriversByTrend(@RequestParam String trend) throws IOException {
-        List<DriverDTO> allDrivers = excelService.readExcelDrivers("/Users/tubacayir/IdeaProjects/TusasProject/src/main/resources/Drivers.xlsx");
-        List<DriverDTO> filtered = new ArrayList<>();
+    public List<DriverDTO> getDriversByTrend(@RequestParam String trendName) {
+        List<Trend> trends = trendRepository.findByTrendName(trendName);
 
-        for (DriverDTO dto : allDrivers) {
-            if (dto.getTrend().equalsIgnoreCase(trend)) {
-                filtered.add(dto);
-            }
+        if (!trends.isEmpty()) {
+            Trend trend = trends.get(0);
+            return driverRepository.findAll().stream()
+                    .filter(driver -> driver.getTrend().getId().equals(trend.getId()))
+                    .map(driver -> {
+                        DriverDTO dto = new DriverDTO();
+                        dto.setTrend(trend.getTrend_name());
+                        dto.setDriver(driver.getDriverName());
+                        dto.setImpact(driver.getImpact() != null ? driver.getImpact() : 0.0);
+                        dto.setUncertainty(driver.getUncertainty() != null ? driver.getUncertainty() : 0.0);
+                        return dto;
+                    }).collect(Collectors.toList());
         }
-
-        return filtered;
+        return List.of();
     }
 
 
-}
+    // Her trend için ortalama impact hesapla
+    @GetMapping("/average-impacts")
+    public List<TrendImpactDTO> getAverageImpactPerTrend() {
+        List<Trend> trends = trendRepository.findAll();
 
+        return trends.stream()
+                .map(trend -> {
+                    List<Driver> drivers = driverRepository.findAll()
+                            .stream()
+                            .filter(driver -> driver.getTrend().getId().equals(trend.getId()))
+                            .collect(Collectors.toList());
+
+                    double avgImpact = drivers.stream()
+                            .mapToDouble(d -> d.getImpact() != null ? d.getImpact() : 0.0)
+                            .average()
+                            .orElse(0.0);
+
+                    return new TrendImpactDTO(trend.getTrend_name(), avgImpact);
+                })
+                .collect(Collectors.toList());
+    }
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Çember Etrafında Yazılar</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+        }
+        svg {
+            width: 600px;
+            height: 600px;
+        }
+        text {
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+    </style>
+</head>
+<body>
+<svg viewBox="0 0 600 600">
+    <circle cx="300" cy="300" r="200" stroke="black" fill="none" />
+    <g id="lines-and-texts"></g>
+</svg>
+
+<script>
+    const centerX = 300;
+    const centerY = 300;
+    const radius = 200;
+    const textRadius = 220;
+    const count = 50;
+    const group = document.getElementById("lines-and-texts");
+
+    for (let i = 0; i < count; i++) {
+        const angle = (2 * Math.PI / count) * i;
+        const x1 = centerX;
+        const y1 = centerY;
+        const x2 = centerX + radius * Math.cos(angle);
+        const y2 = centerY + radius * Math.sin(angle);
+
+        // Çizgi
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("stroke", "black");
+        group.appendChild(line);
+
+        // Yazı
+        const textX = centerX + textRadius * Math.cos(angle);
+        const textY = centerY + textRadius * Math.sin(angle);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", textX);
+        text.setAttribute("y", textY);
+
+        // Açıyı dereceye çevirip yazıyı döndür
+        const degrees = angle * 180 / Math.PI;
+        text.setAttribute("transform", `rotate(${degrees}, ${textX}, ${textY})`);
+        text.textContent = `Yazı ${i + 1}`;
+        group.appendChild(text);
+    }
+</script>
+</body>
+</html>

@@ -126,7 +126,6 @@
     </section>
 </main>
 
-<!-- Kısaltılmış: Stil ve header kısmı aynı kalabilir -->
 <script>
     async function fetchChartData() {
         const res = await fetch("/api/drivers/average-impacts");
@@ -134,10 +133,13 @@
     }
 
     async function fetchDrivers(trend) {
-        const res = await fetch(`/api/drivers/by-trend?trendName=${encodeURIComponent(trend)}`);
-        return res.ok ? res.json() : [];
+        try {
+            const res = await fetch(`/api/drivers/by-trend?trend=${encodeURIComponent(trend)}`);
+            return res.ok ? res.json() : [];
+        } catch {
+            return [];
+        }
     }
-
     function renderRadarChart(data) {
         const chart = echarts.init(document.getElementById("chart-container"));
         const indicators = data.map(d => ({
@@ -146,17 +148,56 @@
         }));
         const impacts = data.map(d => d.averageImpact);
 
+        const angleStep = 360 / indicators.length;
+
+        const richLabels = {};
+        indicators.forEach((ind, idx) => {
+            const angle = angleStep * idx;
+            const rotation = angle <= 180 ? angle : angle - 180; // Adjust for upside-down
+            richLabels[`label${idx}`] = {
+                align: 'center',
+                rotate: rotation,
+                fontSize: 12,
+                color: '#333',
+            };
+            ind.name = `{label${idx}|${ind.name}}`;
+        });
+
         const option = {
             title: {
                 text: 'Technological Trends - Average Impact',
                 left: 'center',
-                textStyle: { color: '#003366' }
+                textStyle: {
+                    color: '#003366'
+                }
             },
-            tooltip: { trigger: 'item' },
+            tooltip: {
+                trigger: 'item'
+            },
             radar: {
                 indicator: indicators,
                 radius: '80%',
-                splitNumber: 5
+                name: {
+                    rich: richLabels,
+                    formatter: (name) => name,
+                },
+                startAngle: 0,
+                splitNumber: 5,
+                splitArea: {
+                    areaStyle: {
+                        color: ['#f5f5f5', '#ffffff']
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#aaa'
+                    }
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#ccc'
+                    }
+                }
             },
             series: [{
                 name: 'Average Impact',
@@ -164,9 +205,17 @@
                 data: [{
                     value: impacts,
                     name: 'Impact',
-                    areaStyle: { color: 'rgba(0,51,102,0.2)' },
-                    lineStyle: { color: '#003366' },
-                    itemStyle: { color: '#003366' }
+                    areaStyle: {
+                        color: 'rgba(0,51,102,0.2)'
+                    },
+                    lineStyle: {
+                        color: '#003366'
+                    },
+                    symbol: 'circle',
+                    symbolSize: 5,
+                    itemStyle: {
+                        color: '#003366'
+                    }
                 }]
             }]
         };
@@ -184,27 +233,24 @@
         });
     }
 
+
     async function onTrendClick(button, trend) {
         document.querySelectorAll('.trend-btn').forEach(btn => btn.classList.toggle('active', btn === button || btn.textContent === trend));
-        document.getElementById('driver-title').textContent = `Drivers of ${trend}`;
         const list = document.getElementById('driver-list');
+        document.getElementById('driver-title').textContent = `Drivers of ${trend}`;
         list.innerHTML = '';
-        const drivers = await fetchDrivers(trend);
-        drivers.forEach(d => {
+        (await fetchDrivers(trend)).forEach(d => {
             const li = document.createElement('li');
-            li.innerHTML = `<strong>${d.driverName}</strong><br/>
-                Impact: <input type="number" value="${d.impact ?? ''}" min="0" max="5" step="0.1" disabled /><br/>
-                Uncertainty: <input type="number" value="${d.uncertainty ?? ''}" min="0" max="5" step="0.1" disabled />`;
+            li.innerHTML = `<strong>${d.driver}</strong><br/>Impact: <input type="number" min="0" max="5" step="0.1" value="${d.impact || ''}" /><br/>Uncertainty: <input type="number" min="0" max="5" step="0.1" value="${d.uncertainty || ''}" />`;
             list.appendChild(li);
         });
     }
 
     (async () => {
         const data = await fetchChartData();
-        renderRadarChart(data);
+        renderRadarChart(data.slice(0, 30));
         await onTrendClick(null, 'Defence');
     })();
 </script>
-
 </body>
 </html>
