@@ -9,8 +9,6 @@ import java.util.List;
 @Entity
 @Table(name = "trends", uniqueConstraints = @UniqueConstraint(columnNames = "trend_name"))
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Trend {

@@ -3,8 +3,19 @@ package com.example.TusasProject.dto;
 public class DriverDTO {
     private String trend;
     private String driver;
-    private double impact;
-    private double uncertainty;
+    private float impact;
+    private float uncertainty;
+
+    private Long id;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
 
     public String getTrend() {
         return trend;
@@ -26,7 +37,7 @@ public class DriverDTO {
         return impact;
     }
 
-    public void setImpact(double impact) {
+    public void setImpact(float impact) {
         this.impact = impact;
     }
 
@@ -34,7 +45,7 @@ public class DriverDTO {
         return uncertainty;
     }
 
-    public void setUncertainty(double uncertainty) {
+    public void setUncertainty(float uncertainty) {
         this.uncertainty = uncertainty;
     }
     // Getter ve Setter’lar

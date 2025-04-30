@@ -8,6 +8,7 @@ import com.example.TusasProject.entity.Trend;
 import com.example.TusasProject.repository.DriverRepository;
 import com.example.TusasProject.repository.TrendRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,17 +37,20 @@ public class DriverController {
             Trend trend = trends.get(0);
             return driverRepository.findAll().stream()
                     .filter(driver -> driver.getTrend().getId().equals(trend.getId()))
+                    .limit(30) // 30 driver ile sınırla
                     .map(driver -> {
                         DriverDTO dto = new DriverDTO();
+                        dto.setId(driver.getId()); // önemli: frontend güncelleme için lazım
                         dto.setTrend(trend.getTrend_name());
                         dto.setDriver(driver.getDriverName());
-                        dto.setImpact(driver.getImpact() != null ? driver.getImpact() : 0.0);
-                        dto.setUncertainty(driver.getUncertainty() != null ? driver.getUncertainty() : 0.0);
+                        dto.setImpact(driver.getImpact() != null ? driver.getImpact() : (float) 0.0);
+                        dto.setUncertainty(driver.getUncertainty() != null ? driver.getUncertainty() : (float) 0.0);
                         return dto;
                     }).collect(Collectors.toList());
         }
         return List.of();
     }
+
 
 
     // Her trend için ortalama impact hesapla
@@ -70,4 +74,16 @@ public class DriverController {
                 })
                 .collect(Collectors.toList());
     }
+    @PostMapping("/update")
+    public ResponseEntity<?> updateDrivers(@RequestBody List<DriverDTO> driverDtos) {
+        for (DriverDTO dto : driverDtos) {
+            Driver driver = driverRepository.findById(dto.getId())
+                    .orElseThrow(() -> new RuntimeException("Driver not found: " + dto.getId()));
+            driver.setImpact((float) dto.getImpact());
+            driver.setUncertainty((float) dto.getUncertainty());
+            driverRepository.save(driver);
+        }
+        return ResponseEntity.ok("Updated");
+    }
+
 }
