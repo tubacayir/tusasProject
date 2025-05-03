@@ -31,7 +31,7 @@ public class DriverController {
     // Belirli bir trend'e ait driverları getir
     @GetMapping("/by-trend")
     public List<DriverDTO> getDriversByTrend(@RequestParam String trendName) {
-        List<Trend> trends = trendRepository.findByTrendName(trendName);
+        List<Trend> trends = trendRepository.findByTrendNameIgnoreCase(trendName);
 
         if (!trends.isEmpty()) {
             Trend trend = trends.get(0);
@@ -56,7 +56,10 @@ public class DriverController {
     // Her trend için ortalama impact hesapla
     @GetMapping("/average-impacts")
     public List<TrendImpactDTO> getAverageImpactPerTrend() {
-        List<Trend> trends = trendRepository.findAll();
+        List<Trend> trends = trendRepository.findAll()
+                .stream()
+                .limit(45) // <--- sadece ilk 45 trend
+                .collect(Collectors.toList());
 
         return trends.stream()
                 .map(trend -> {
@@ -74,6 +77,7 @@ public class DriverController {
                 })
                 .collect(Collectors.toList());
     }
+
     @PostMapping("/update")
     public ResponseEntity<?> updateDrivers(@RequestBody List<DriverDTO> driverDtos) {
         for (DriverDTO dto : driverDtos) {
@@ -85,5 +89,13 @@ public class DriverController {
         }
         return ResponseEntity.ok("Updated");
     }
+    @GetMapping("/definition")
+    public ResponseEntity<String> getTrendDefinition(@RequestParam String trendName) {
+        return trendRepository.findByTrendNameIgnoreCase(trendName).stream()
+                .findFirst()
+                .map(trend -> ResponseEntity.ok(trend.getDefinition()))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
 }
