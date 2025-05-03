@@ -159,6 +159,7 @@
         const radius = Math.min(width, height) / 4;
 
         setupSVG(width, height);
+
         container.selectAll("*").remove();
 
         const angleSlice = (2 * Math.PI) / data.length;
@@ -238,6 +239,13 @@
             .on("click", (event, d) => {
                 window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
             });
+        svg.append("text")
+            .attr("x", chartElement.clientWidth - 150)
+            .attr("y", chartElement.clientHeight - 200)
+            .text("POTENTIAL IMPACT")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .style("fill", "#333");
         const legendData = [
             { label: "0–1", color: "#d73027" },
             { label: "1–2", color: "#fc8d59" },
@@ -267,6 +275,22 @@
             .attr("y", (d, i) => i * 25 + 15)
             .text(d => d.label)
             .style("font-size", "14px");
+        container.append("line")
+            .attr("x1", -radius)
+            .attr("y1", 0)
+            .attr("x2", radius)
+            .attr("y2", 0)
+            .style("stroke", "#888")
+            .style("stroke-dasharray", "4,2");
+
+        container.append("text")
+            .attr("x", 0)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("fill", "#666")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .text("POTENTIAL IMPACT");
     }
 
     async function initialize() {

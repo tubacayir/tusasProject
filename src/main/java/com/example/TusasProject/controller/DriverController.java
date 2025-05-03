@@ -58,7 +58,7 @@ public class DriverController {
     public List<TrendImpactDTO> getAverageImpactPerTrend() {
         List<Trend> trends = trendRepository.findAll()
                 .stream()
-                .limit(45) // <--- sadece ilk 45 trend
+                .limit(80)
                 .collect(Collectors.toList());
 
         return trends.stream()
@@ -73,7 +73,7 @@ public class DriverController {
                             .average()
                             .orElse(0.0);
 
-                    return new TrendImpactDTO(trend.getTrend_name(), avgImpact);
+                    return new TrendImpactDTO(trend.getTrend_name(), avgImpact, trend.getDefinition());
                 })
                 .collect(Collectors.toList());
     }
