@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PageController {
 
 
-  @Autowired
-  UserServiceImp userServiceImp;
+    @Autowired
+    UserServiceImp userServiceImp;
 
     @GetMapping("/expertLogin")
     public String expertLogin() {
@@ -23,5 +23,10 @@ public class PageController {
         return "managerLogin";
     }
 
-    }
+  @GetMapping("/panel")
+  public String showPanelPage() {
+    return "panel"; // src/main/resources/templates/panel.html
+  }
 
+
+}

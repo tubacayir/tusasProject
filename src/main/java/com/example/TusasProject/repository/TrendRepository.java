@@ -11,8 +11,8 @@ import java.util.List;
 
 @Repository
 public interface TrendRepository extends JpaRepository<Trend, Integer> {
-    @Query("SELECT trend FROM Trend trend WHERE trend.trend_name = :trendName")
+    @Query("SELECT trend FROM Trend trend WHERE LOWER(trend.trend_name) = LOWER(:trendName)")
     @Transactional(readOnly = true)
-    List<Trend> findByTrendName(@org.springframework.data.repository.query.Param("trendName") String trendName);}
+    List<Trend> findByTrendNameIgnoreCase(@org.springframework.data.repository.query.Param("trendName") String trendName);}
 
 
