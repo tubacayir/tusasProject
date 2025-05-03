@@ -23,5 +23,10 @@ public class PageController {
         return "managerLogin";
     }
 
+  @GetMapping("/panel")
+  public String showPanelPage() {
+    return "panel"; // src/main/resources/templates/panel.html
+  }
+
     }
 
