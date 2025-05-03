@@ -48,7 +48,7 @@ public class ExcelService {
                 Double uncertainty = getNumericCellValue(row, 4); // Uncertainty
                 Double polarity = getNumericCellValue(row, 5); // Polarity
 
-                List<Trend> trends = trendRepository.findByTrendName(trendName);
+                List<Trend> trends = trendRepository.findByTrendNameIgnoreCase(trendName);
 
                 if (trends.isEmpty()) {
                     System.out.println("Trend bulunamadı: " + trendName);
