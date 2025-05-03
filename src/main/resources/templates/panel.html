@@ -5,97 +5,167 @@
     <title>TUSAŞ - Technological Radar</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body {
-            margin: 0;
-            font-family: "Segoe UI", sans-serif;
-            background: #f5f5f5;
+        * {
+            box-sizing: border-box;
         }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        body {
+            display: flex;
+        }
+
+        nav {
+            width: 220px;
+            background-color: #003366;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        nav img {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        nav button:hover {
+            background-color: #004080;
+        }
+
+        .main-wrapper {
+            margin-left: 220px;
+            width: calc(100% - 220px);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
         header {
             background-color: #003366;
             color: white;
-            padding: 0.5rem 1rem;
-            display: flex;
-            align-items: center;
-        }
-        header img {
-            height: 40px;
-            margin-right: 1rem;
-        }
-        #chart {
-            width: 100%;
-            height: 600px;
-        }
-        .driver-list {
-            background: white;
-            margin: 1rem;
             padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
         }
-        .driver-list ul {
-            list-style: none;
-            padding: 0;
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
         }
-        .driver-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #ccc;
+
+        #chart {
+            flex: 1;
+            overflow: auto;
+            position: relative;
         }
-        .driver-list li:last-child {
-            border-bottom: none;
+
+        svg {
+            width: 100%;
+            height: 100%;
         }
-        .save-btn {
-            background-color: #003366;
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 51, 102, 0.9);
             color: white;
-            padding: 0.5rem 1rem;
-            border: none;
+            padding: 8px 12px;
             border-radius: 4px;
-            cursor: pointer;
-            margin-top: 1rem;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            font-size: 0.9rem;
+            max-width: 300px;
+            z-index: 10;
+            display: none;
         }
     </style>
 </head>
 <body>
-<header>
+
+<!-- Sidebar -->
+<nav>
     <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
-    <h1>Technological Radar</h1>
-</header>
+    <button onclick="alert('Radar Görünümü')">Radar Görünümü</button>
+    <button onclick="alert('Analiz Paneli')">Analiz Paneli</button>
+</nav>
 
-<div id="chart"></div>
+<!-- Main content -->
+<div class="main-wrapper">
+    <header>
+        <h1>Technological Radar</h1>
+    </header>
+    <div id="chart"></div>
+</div>
 
-<section class="driver-list" id="driver-list-section">
-    <h2 id="driver-title">Drivers of Defence</h2>
-    <ul id="driver-list"></ul>
-    <button class="save-btn" onclick="submitRatings()">Kaydet</button>
-</section>
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
 
 <script>
-    const width = 700;
-    const height = 600;
-    const radius = 250;
-    const svg = d3.select("#chart")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    const container = svg.append("g")
-        .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-    let updatedDrivers = {};
+    let svg, container;
+    const chartElement = document.getElementById("chart");
+    const tooltip = d3.select("#tooltip");
 
     async function fetchChartData() {
         const res = await fetch("/api/drivers/average-impacts");
         return res.ok ? res.json() : [];
     }
 
-    async function fetchDrivers(trend) {
-        const res = await fetch(`/api/drivers/by-trend?trendName=${encodeURIComponent(trend)}`);
-        return res.ok ? res.json() : [];
+    function setupSVG(width, height) {
+        d3.select("#chart").select("svg").remove();
+
+        svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%");
+        const zoomGroup = svg.append("g");
+
+        svg.call(
+            d3.zoom()
+                .scaleExtent([0.5, 4])
+                .on("zoom", (event) => {
+                    zoomGroup.attr("transform", event.transform);
+                })
+        );
+
+        container = zoomGroup.append("g")
+            .attr("transform", `translate(${width / 2}, ${height / 2})`);
     }
 
     async function renderRadar(data) {
+
+        const width = chartElement.clientWidth;
+        const height = chartElement.clientHeight;
+        const radius = Math.min(width, height) / 4;
+
+        setupSVG(width, height);
         container.selectAll("*").remove();
 
         const angleSlice = (2 * Math.PI) / data.length;
+
+        const colorScale = d3.scaleThreshold()
+            .domain([1, 2, 3, 4])
+            .range(["#d73027", "#fc8d59", "#fee08b", "#91cf60", "#1a9850"]);
 
         for (let i = 1; i <= 5; i++) {
             container.append("circle")
@@ -104,6 +174,7 @@
                 .style("stroke", "#ccc");
         }
 
+        // Draw axes
         data.forEach((d, i) => {
             const angle = i * angleSlice - Math.PI / 2;
             const x = radius * Math.cos(angle);
@@ -114,21 +185,35 @@
                 .style("stroke", "#aaa");
         });
 
+        // Points
         container.selectAll("circle.trend-point")
             .data(data)
             .enter()
             .append("circle")
             .attr("class", "trend-point")
             .attr("r", 6)
-            .attr("fill", "#003366")
+            .attr("fill", d => colorScale(d.averageImpact))
             .attr("cx", (d, i) => radius * (d.averageImpact / 5) * Math.cos(i * angleSlice - Math.PI / 2))
             .attr("cy", (d, i) => radius * (d.averageImpact / 5) * Math.sin(i * angleSlice - Math.PI / 2))
             .style("cursor", "pointer")
-            .on("click", async (event, d) => {
-                document.getElementById("driver-title").textContent = `Drivers of ${d.trend}`;
-                await onTrendClick(d.trend);
+            .on("mouseover", (event, d) => {
+                tooltip
+                    .style("display", "block")
+                    .html(`<strong>${d.trend}</strong><br>${d.definition}`);
+            })
+            .on("mousemove", (event) => {
+                tooltip
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY + 10) + "px");
+            })
+            .on("mouseout", () => {
+                tooltip.style("display", "none");
+            })
+            .on("click", (event, d) => {
+                window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
             });
 
+        // Labels
         container.selectAll("text.label")
             .data(data)
             .enter()
@@ -137,8 +222,8 @@
             .attr("dy", "0.35em")
             .attr("transform", (d, i) => {
                 const angle = angleSlice * i - Math.PI / 2;
-                const x = Math.cos(angle) * (radius + 20);
-                const y = Math.sin(angle) * (radius + 20);
+                const x = Math.cos(angle) * (radius + 10);
+                const y = Math.sin(angle) * (radius + 10);
                 const angleDeg = angle * 180 / Math.PI;
                 const rotate = angleDeg > 90 || angleDeg < -90 ? angleDeg + 180 : angleDeg;
                 return `translate(${x},${y}) rotate(${rotate})`;
@@ -150,60 +235,48 @@
             })
             .style("cursor", "pointer")
             .text(d => d.trend)
-            .on("click", (event, d) => onTrendClick(d.trend));
+            .on("click", (event, d) => {
+                window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
+            });
+        const legendData = [
+            { label: "0–1", color: "#d73027" },
+            { label: "1–2", color: "#fc8d59" },
+            { label: "2–3", color: "#fee08b" },
+            { label: "3–4", color: "#91cf60" },
+            { label: "4–5", color: "#1a9850" },
+        ];
 
+        const legend = svg.append("g")
+            .attr("transform", `translate(${chartElement.clientWidth - 150}, ${chartElement.clientHeight - 180})`);
+
+        legend.selectAll("rect")
+            .data(legendData)
+            .enter()
+            .append("rect")
+            .attr("x", 0)
+            .attr("y", (d, i) => i * 25)
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("fill", d => d.color);
+
+        legend.selectAll("text")
+            .data(legendData)
+            .enter()
+            .append("text")
+            .attr("x", 30)
+            .attr("y", (d, i) => i * 25 + 15)
+            .text(d => d.label)
+            .style("font-size", "14px");
     }
 
-        async function onTrendClick(trend) {
-        const list = document.getElementById('driver-list');
-        list.innerHTML = '';
-        const drivers = await fetchDrivers(trend);
-        updatedDrivers = {};
-
-        drivers.forEach((d, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <strong>${index + 1}. ${d.driver}</strong><br/>
-                Impact: <input type="number" min="0" max="5" step="1" value="${d.impact ?? ''}"
-                    onchange="updateValue(${d.id}, 'impact', this.value)" /><br/>
-                Uncertainty: <input type="number" min="0" max="5" step="1" value="${d.uncertainty ?? ''}"
-                    onchange="updateValue(${d.id}, 'uncertainty', this.value)" />
-            `;
-            list.appendChild(li);
-        });
-    }
-
-    function updateValue(driverId, field, value) {
-        if (!updatedDrivers[driverId]) {
-            updatedDrivers[driverId] = { id: driverId };
-        }
-        updatedDrivers[driverId][field] = parseFloat(value);
-    }
-
-    async function submitRatings() {
-        const payload = Object.values(updatedDrivers);
-        if (payload.length === 0) {
-            alert("Değişiklik yapılmadı.");
-            return;
-        }
-        const res = await fetch("/api/drivers/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-            alert("Puanlar kaydedildi!");
-            updatedDrivers = {};
-        } else {
-            alert("Hata oluştu.");
-        }
-    }
-
-    (async () => {
+    async function initialize() {
         const data = await fetchChartData();
         await renderRadar(data);
-        await onTrendClick('Defence');
-    })();
+    }
+
+    window.addEventListener("resize", initialize);
+    initialize();
 </script>
+
 </body>
 </html>
