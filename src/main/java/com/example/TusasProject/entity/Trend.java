@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "trends", uniqueConstraints = @UniqueConstraint(columnNames = "trend_name"))
 @Data
@@ -19,7 +21,7 @@ public class Trend {
     private Long id;
 
     @Column(name = "trend_name", length = 1000)
-    private String trend_name;
+    private String trendName;
 
     @Column(name = "avg_impact")
     private Float avgImpact;

@@ -41,7 +41,7 @@ public class DriverController {
                     .map(driver -> {
                         DriverDTO dto = new DriverDTO();
                         dto.setId(driver.getId()); // önemli: frontend güncelleme için lazım
-                        dto.setTrend(trend.getTrend_name());
+                        dto.setTrend(trend.getTrendName());
                         dto.setDriver(driver.getDriverName());
                         dto.setImpact(driver.getImpact() != null ? driver.getImpact() : (float) 0.0);
                         dto.setUncertainty(driver.getUncertainty() != null ? driver.getUncertainty() : (float) 0.0);
@@ -73,7 +73,7 @@ public class DriverController {
                             .average()
                             .orElse(0.0);
 
-                    return new TrendImpactDTO(trend.getTrend_name(), avgImpact, trend.getDefinition());
+                    return new TrendImpactDTO(trend.getTrendName(), avgImpact, trend.getDefinition());
                 })
                 .collect(Collectors.toList());
     }
