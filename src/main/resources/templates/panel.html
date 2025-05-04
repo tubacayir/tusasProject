@@ -1,196 +1,306 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TUSAŞ - Technological Radar</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         html, body {
-            margin: 0; padding: 0; height: 100%;
+            margin: 0;
+            height: 100%;
             font-family: "Segoe UI", sans-serif;
-            display: flex; flex-direction: column;
+            background-color: #f5f5f5;
         }
-        header {
-            background-color: #003366; color: white;
-            padding: 0.5rem 1rem;
-            display: flex; align-items: center;
+
+        body {
+            display: flex;
         }
-        header img {
-            height: 40px; margin-right: 1rem;
+
+        nav {
+            width: 220px;
+            background-color: #003366;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
-        main {
-            flex: 1; overflow-y: auto; background: #f5f5f5;
+
+        nav img {
+            width: 100%;
+            margin-bottom: 2rem;
         }
-        #main {
-            display: flex; padding: 1rem;
-        }
-        .sidebar {
-            width: 200px; background: white;
-            border-right: 1px solid #ccc; padding: 1rem;
-        }
-        .trend-btn {
-            display: block; padding: 0.5rem; margin: 0.5rem 0;
-            background: #e0e0e0; border: none; width: 100%;
-            text-align: left; cursor: pointer; font-size: 0.9rem;
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
             border-radius: 4px;
+            transition: background 0.3s;
         }
-        .trend-btn.active { background: #003366; color: white; }
-        .chart-section {
-            flex: 1; background: white; margin-left: 1rem;
-            border-radius: 8px; padding: 1rem;
-            display: flex; flex-direction: column;
+
+        nav button:hover {
+            background-color: #004080;
         }
-        .chart-container {
-            flex: 1; width: 100%; min-height: 500px;
+
+        .main-wrapper {
+            margin-left: 220px;
+            width: calc(100% - 220px);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
-        .driver-list {
-            margin: 1rem; background: white;
-            border-radius: 8px; padding: 1rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 1rem;
+            text-align: center;
         }
-        .driver-list ul { list-style: none; padding: 0; }
-        .driver-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #ccc;
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
         }
-        .driver-list li:last-child { border-bottom: none; }
-        .save-btn {
-            background-color: #003366; color: white;
-            padding: 0.5rem 1rem; border: none;
-            border-radius: 4px; cursor: pointer;
-            margin: 1rem;
+
+        #chart {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 51, 102, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            font-size: 0.9rem;
+            max-width: 300px;
+            z-index: 10;
+            display: none;
         }
     </style>
 </head>
 <body>
-<header>
-    <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
-    <h1>Technological Radar</h1>
-</header>
-<main>
-    <div id="main">
-        <div class="sidebar">
-            <h2>Mega Trends</h2>
-            <button class="trend-btn active" onclick="onTrendClick(this, 'Defence')">Defence</button>
-            <button class="trend-btn" onclick="onTrendClick(this, 'Aviation')">Aviation</button>
-            <!-- Diğer trend butonlarını da ekleyebilirsin -->
-        </div>
-        <div class="chart-section">
-            <div class="chart-container" id="chart-container"></div>
-        </div>
-    </div>
 
-    <section class="driver-list" id="driver-list-section">
-        <h2 id="driver-title">Drivers of Defence</h2>
-        <ul id="driver-list"></ul>
-        <button class="save-btn" onclick="submitRatings()">Kaydet</button>
-    </section>
-</main>
+<!-- Sidebar -->
+<nav>
+    <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
+    <button onclick="alert('Radar Görünümü')">Radar Görünümü</button>
+    <button onclick="alert('Analiz Paneli')">Analiz Paneli</button>
+</nav>
+
+<!-- Main content -->
+<div class="main-wrapper">
+    <header>
+        <h1>Technological Radar</h1>
+    </header>
+    <div id="chart"></div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
 
 <script>
-    let updatedDrivers = {};
+    let svg, container;
+    const chartElement = document.getElementById("chart");
+    const tooltip = d3.select("#tooltip");
 
     async function fetchChartData() {
         const res = await fetch("/api/drivers/average-impacts");
         return res.ok ? res.json() : [];
     }
 
-    async function fetchDrivers(trend) {
-        const res = await fetch(`/api/drivers/by-trend?trendName=${encodeURIComponent(trend)}`);
-        return res.ok ? res.json() : [];
+    function setupSVG(width, height) {
+        d3.select("#chart").select("svg").remove();
+
+        svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%");
+        const zoomGroup = svg.append("g");
+
+        svg.call(
+            d3.zoom()
+                .scaleExtent([0.5, 4])
+                .on("zoom", (event) => {
+                    zoomGroup.attr("transform", event.transform);
+                })
+        );
+
+        container = zoomGroup.append("g")
+            .attr("transform", `translate(${width / 2}, ${height / 2})`);
     }
 
-    function renderRadarChart(data) {
-        const chart = echarts.init(document.getElementById("chart-container"));
-        const indicators = data.map(d => ({ name: d.trend, max: 5 }));
-        const impacts = data.map(d => d.averageImpact);
+    async function renderRadar(data) {
 
-        const option = {
-            title: { text: 'Technological Trends - Average Impact', left: 'center', textStyle: { color: '#003366' } },
-            tooltip: { trigger: 'item' },
-            radar: {
-                indicator: indicators,
-                radius: '80%',
-                splitNumber: 5
-            },
-            series: [{
-                name: 'Average Impact',
-                type: 'radar',
-                data: [{
-                    value: impacts,
-                    name: 'Impact',
-                    areaStyle: { color: 'rgba(0,51,102,0.2)' },
-                    lineStyle: { color: '#003366' },
-                    itemStyle: { color: '#003366' }
-                }]
-            }]
-        };
+        const width = chartElement.clientWidth;
+        const height = chartElement.clientHeight;
+        const radius = Math.min(width, height) / 4;
 
-        chart.setOption(option);
-        chart.off('click');
-        chart.on('click', async params => {
-            const idx = params.dataIndex;
-            if (idx !== undefined) {
-                const trend = data[idx].trend;
-                document.querySelectorAll('.trend-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === trend));
-                await onTrendClick(null, trend);
-            }
-        });
-    }
+        setupSVG(width, height);
 
-    async function onTrendClick(button, trend) {
-        document.querySelectorAll('.trend-btn').forEach(btn => btn.classList.toggle('active', btn === button || btn.textContent === trend));
-        document.getElementById('driver-title').textContent = `Drivers of ${trend}`;
-        const list = document.getElementById('driver-list');
-        list.innerHTML = '';
-        const drivers = await fetchDrivers(trend);
-        updatedDrivers = {};
+        container.selectAll("*").remove();
 
-        drivers.forEach((d, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <strong>${index + 1}. ${d.driver}</strong><br/>
-                Impact: <input type="number" min="0" max="5" step="1" value="${d.impact ?? ''}"
-                    onchange="updateValue(${d.id}, 'impact', this.value)" /><br/>
-                Uncertainty: <input type="number" min="0" max="5" step="1" value="${d.uncertainty ?? ''}"
-                    onchange="updateValue(${d.id}, 'uncertainty', this.value)" />
-            `;
-            list.appendChild(li);
-        });
-    }
+        const angleSlice = (2 * Math.PI) / data.length;
 
-    function updateValue(driverId, field, value) {
-        if (!updatedDrivers[driverId]) {
-            updatedDrivers[driverId] = { id: driverId };
+        const colorScale = d3.scaleThreshold()
+            .domain([1, 2, 3, 4])
+            .range(["#d73027", "#fc8d59", "#fee08b", "#91cf60", "#1a9850"]);
+
+        for (let i = 1; i <= 5; i++) {
+            container.append("circle")
+                .attr("r", radius * i / 5)
+                .style("fill", "none")
+                .style("stroke", "#ccc");
         }
-        updatedDrivers[driverId][field] = parseFloat(value);
-    }
 
-    async function submitRatings() {
-        const payload = Object.values(updatedDrivers);
-        if (payload.length === 0) {
-            alert("Değişiklik yapılmadı.");
-            return;
-        }
-        const res = await fetch("/api/drivers/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+        // Draw axes
+        data.forEach((d, i) => {
+            const angle = i * angleSlice - Math.PI / 2;
+            const x = radius * Math.cos(angle);
+            const y = radius * Math.sin(angle);
+            container.append("line")
+                .attr("x1", 0).attr("y1", 0)
+                .attr("x2", x).attr("y2", y)
+                .style("stroke", "#aaa");
         });
-        if (res.ok) {
-            alert("Puanlar kaydedildi!");
-            updatedDrivers = {};
-        } else {
-            alert("Hata oluştu.");
-        }
+
+        // Points
+        container.selectAll("circle.trend-point")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("class", "trend-point")
+            .attr("r", 6)
+            .attr("fill", d => colorScale(d.averageImpact))
+            .attr("cx", (d, i) => radius * (d.averageImpact / 5) * Math.cos(i * angleSlice - Math.PI / 2))
+            .attr("cy", (d, i) => radius * (d.averageImpact / 5) * Math.sin(i * angleSlice - Math.PI / 2))
+            .style("cursor", "pointer")
+            .on("mouseover", (event, d) => {
+                tooltip
+                    .style("display", "block")
+                    .html(`<strong>${d.trend}</strong><br>${d.definition}`);
+            })
+            .on("mousemove", (event) => {
+                tooltip
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY + 10) + "px");
+            })
+            .on("mouseout", () => {
+                tooltip.style("display", "none");
+            })
+            .on("click", (event, d) => {
+                window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
+            });
+
+        // Labels
+        container.selectAll("text.label")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("class", "label")
+            .attr("dy", "0.35em")
+            .attr("transform", (d, i) => {
+                const angle = angleSlice * i - Math.PI / 2;
+                const x = Math.cos(angle) * (radius + 10);
+                const y = Math.sin(angle) * (radius + 10);
+                const angleDeg = angle * 180 / Math.PI;
+                const rotate = angleDeg > 90 || angleDeg < -90 ? angleDeg + 180 : angleDeg;
+                return `translate(${x},${y}) rotate(${rotate})`;
+            })
+            .attr("text-anchor", (d, i) => {
+                const angle = angleSlice * i - Math.PI / 2;
+                const angleDeg = angle * 180 / Math.PI;
+                return angleDeg > 90 || angleDeg < -90 ? "end" : "start";
+            })
+            .style("cursor", "pointer")
+            .text(d => d.trend)
+            .on("click", (event, d) => {
+                window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
+            });
+        svg.append("text")
+            .attr("x", chartElement.clientWidth - 150)
+            .attr("y", chartElement.clientHeight - 200)
+            .text("POTENTIAL IMPACT")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .style("fill", "#333");
+        const legendData = [
+            { label: "0–1", color: "#d73027" },
+            { label: "1–2", color: "#fc8d59" },
+            { label: "2–3", color: "#fee08b" },
+            { label: "3–4", color: "#91cf60" },
+            { label: "4–5", color: "#1a9850" },
+        ];
+
+        const legend = svg.append("g")
+            .attr("transform", `translate(${chartElement.clientWidth - 150}, ${chartElement.clientHeight - 180})`);
+
+        legend.selectAll("rect")
+            .data(legendData)
+            .enter()
+            .append("rect")
+            .attr("x", 0)
+            .attr("y", (d, i) => i * 25)
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("fill", d => d.color);
+
+        legend.selectAll("text")
+            .data(legendData)
+            .enter()
+            .append("text")
+            .attr("x", 30)
+            .attr("y", (d, i) => i * 25 + 15)
+            .text(d => d.label)
+            .style("font-size", "14px");
+        container.append("line")
+            .attr("x1", -radius)
+            .attr("y1", 0)
+            .attr("x2", radius)
+            .attr("y2", 0)
+            .style("stroke", "#888")
+            .style("stroke-dasharray", "4,2");
+
+        container.append("text")
+            .attr("x", 0)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("fill", "#666")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .text("POTENTIAL IMPACT");
     }
 
-    (async () => {
+    async function initialize() {
         const data = await fetchChartData();
-        renderRadarChart(data);
-        await onTrendClick(null, 'Defence'); // Başlangıçta Defence göster
-    })();
+        await renderRadar(data);
+    }
+
+    window.addEventListener("resize", initialize);
+    initialize();
 </script>
+
 </body>
 </html>
