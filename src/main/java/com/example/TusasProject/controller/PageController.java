@@ -28,5 +28,5 @@ public class PageController {
     return "panel"; // src/main/resources/templates/panel.html
   }
 
+    }
 
-}

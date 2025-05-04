@@ -1,5 +1,6 @@
 package com.example.TusasProject.entity;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.stereotype.Service;
@@ -29,4 +30,9 @@ public class Trend {
     @Column(name = "definition")
     private String definition;
 
+    @ManyToOne
+    @JoinColumn(name = "mega_trend_id")
+    private MegaTrends megaTrend;
+
 }
+
