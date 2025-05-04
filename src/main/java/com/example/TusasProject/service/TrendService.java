@@ -21,11 +21,7 @@ public class TrendService {
         this.driverRepository = driverRepository;
     }
 
-    public List<String> getDriversByTrend(String trend) {
-        return driverRepository.findByTrend_TrendName(trend)
-                .stream()
-                .map(Driver::getDriverName)
-                .collect(Collectors.toList());
+    public List<Driver> getDriversByTrend(String trend) {
+        return driverRepository.findByTrend_TrendName(trend);
     }
-
 }
