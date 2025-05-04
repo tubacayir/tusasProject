@@ -107,7 +107,8 @@
         }
 
         .rating-segment.active {
-            background-color: #003366;
+            background-color: #007bff !important;  /* Bootstrap mavisi */
+            box-shadow: 0 0 4px #007bff;           /* Hafif parıltı efekti */
         }
 
         .rating-labels {
@@ -153,12 +154,17 @@
         <p>Lütfen aşağıdaki her bir driver için <strong>1 (düşük)</strong> ile <strong>5 (yüksek)</strong> arasında puanlayınız.</p>
     </div>
 
-    <form method="post" action="/submit-driver-ratings">
+    <form method="post" action="/api/drivers/submit-driver-ratings">
         <div th:each="entry : ${driversByCategory}">
             <h2 th:text="${entry.key}" style="color:#00509e; margin-top: 2rem;">Kategori</h2>
 
             <div th:each="driver, iterStat : ${entry.value}" class="driver-card">
                 <h3 th:text="${driver.driverName}">Driver Adı</h3>
+
+                <!-- Hidden Field for Driver ID -->
+                <input type="hidden" name="ratings[__${iterStat.index}__].driver_id" th:value="${driver.id}" />
+
+                <!-- Hidden Field for Driver Name -->
                 <input type="hidden" name="ratings[__${iterStat.index}__].name" th:value="${driver.driverName}" />
 
                 <!-- Impact Rating -->
@@ -202,23 +208,30 @@
         <button type="submit" class="submit-button">Puanları Kaydet</button>
     </form>
 
+
 </div>
 
 <script>
     document.querySelectorAll('.rating-bar').forEach(bar => {
         const segments = bar.querySelectorAll('.rating-segment');
         const inputName = bar.getAttribute('data-name');
-        const hiddenInput = bar.parentElement.querySelector(`input[name="${inputName}"]`);
+
+        // input elementini güvenli şekilde bul
+        const hiddenInput = bar.parentElement.querySelector('input[type="hidden"]');
 
         segments.forEach(segment => {
             segment.addEventListener('click', () => {
-                const value = segment.getAttribute('data-value');
+                const value = parseInt(segment.getAttribute('data-value'));
                 hiddenInput.value = value;
 
-                segments.forEach(s => s.classList.remove('active'));
-                for (let i = 0; i < value; i++) {
-                    segments[i].classList.add('active');
-                }
+                // Segmentleri yeniden boyayıp "active" class'ını güncelle
+                segments.forEach((s, index) => {
+                    if (index < value) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
             });
         });
     });
