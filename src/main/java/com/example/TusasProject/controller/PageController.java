@@ -27,6 +27,11 @@ public class PageController {
   public String showPanelPage() {
     return "panel"; // src/main/resources/templates/panel.html
   }
-
+    @GetMapping("/driver")
+    public  String showDriverPage() {
+        return "driver";
     }
+
+
+}
 
