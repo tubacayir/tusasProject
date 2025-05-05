@@ -2,13 +2,20 @@ package com.example.TusasProject.controller;
 
 
 import com.example.TusasProject.dto.DriverDTO;
+import com.example.TusasProject.dto.DriverRatingDTO;
+import com.example.TusasProject.dto.DriverRatingListDTO;
 import com.example.TusasProject.dto.TrendImpactDTO;
 import com.example.TusasProject.entity.Driver;
+import com.example.TusasProject.entity.Movement;
 import com.example.TusasProject.entity.Trend;
 import com.example.TusasProject.repository.DriverRepository;
+import com.example.TusasProject.repository.MovementRepository;
 import com.example.TusasProject.repository.TrendRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,9 +25,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/drivers")
 @RequiredArgsConstructor
 public class DriverController {
-
+    @Autowired
     private final DriverRepository driverRepository;
     private final TrendRepository trendRepository;
+    private final MovementRepository movementRepository;
 
     // Tüm driverları getir
     @GetMapping
@@ -50,7 +58,6 @@ public class DriverController {
         }
         return List.of();
     }
-
 
 
     // Her trend için ortalama impact hesapla
@@ -89,6 +96,7 @@ public class DriverController {
         }
         return ResponseEntity.ok("Updated");
     }
+
     @GetMapping("/definition")
     public ResponseEntity<String> getTrendDefinition(@RequestParam String trendName) {
         return trendRepository.findByTrendNameIgnoreCase(trendName).stream()
@@ -97,5 +105,19 @@ public class DriverController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
+    @PostMapping("/api/drivers/submit-driver-ratings")
+    public String submitDriverRatings(@ModelAttribute DriverRatingListDTO driverRatingList, Model model) {
+        for (DriverRatingDTO dto : driverRatingList.getRatings()) {
+            Movement movement = new Movement();
+            movement.setDriverId(dto.getDriverId().intValue());
+            movement.setImpact(dto.getImpact());
+            movement.setUncertainty(dto.getUncertainty());
+            movement.setUserId(0);
+            movementRepository.save(movement);
+        }
+        model.addAttribute("message", "Driver ratings submitted successfully!");
+        return "redirect:/panel";
+    }
 }
+
+
