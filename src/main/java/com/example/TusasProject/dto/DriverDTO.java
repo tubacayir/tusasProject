@@ -11,7 +11,11 @@ public class DriverDTO {
     private double impact;
     private double uncertainty;
 
-    private Long id;
 
+    public Long getId() {
+        return null;
+    }
 
+    public void setId(Long id) {
+    }
 }

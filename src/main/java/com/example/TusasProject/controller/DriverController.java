@@ -8,28 +8,34 @@ import com.example.TusasProject.dto.TrendImpactDTO;
 import com.example.TusasProject.entity.Driver;
 import com.example.TusasProject.entity.Movement;
 import com.example.TusasProject.entity.Trend;
+import com.example.TusasProject.entity.User;
 import com.example.TusasProject.repository.DriverRepository;
 import com.example.TusasProject.repository.MovementRepository;
 import com.example.TusasProject.repository.TrendRepository;
+import com.example.TusasProject.repository.UserRepository;
+import com.example.TusasProject.service.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/drivers")
-@RequiredArgsConstructor
 public class DriverController {
-    @Autowired
+
     private final DriverRepository driverRepository;
     private final TrendRepository trendRepository;
     private final MovementRepository movementRepository;
+
+
 
 
     @GetMapping
@@ -107,23 +113,30 @@ public class DriverController {
     }
 
 
-        @PostMapping("/submit-driver-ratings")
-        public String submitRatings(@ModelAttribute DriverRatingListDTO driverRatingListDTO) {
-            for (DriverRatingDTO dto : driverRatingListDTO.getRatings()) {
-                if ((dto.getImpact() == null || dto.getImpact() == 0) &&
-                        (dto.getUncertainty() == null || dto.getUncertainty() == 0)) {
-                    continue;
-                }
-                Movement movement = new Movement();
-                movement.setDriverId(dto.getDriverId());  // DriverId
-                movement.setImpact(dto.getImpact());  // Impact
-                movement.setUncertainty(dto.getUncertainty());  // Uncertainty
-                movement.setUserId(0);
+    @PostMapping("/submit-driver-ratings")
+    public String submitRatings(@ModelAttribute DriverRatingListDTO driverRatingListDTO) {
 
-                movementRepository.save(movement);  // Movement'ü kaydet
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        Integer userId = userDetails.getId();
+
+        for (DriverRatingDTO dto : driverRatingListDTO.getRatings()) {
+            if ((dto.getImpact() == null || dto.getImpact() == 0) &&
+                    (dto.getUncertainty() == null || dto.getUncertainty() == 0)) {
+                continue;
             }
-            return "redirect:/panel";
+
+            Movement movement = new Movement();
+            movement.setUserId(userId);
+            movement.setDriverId(dto.getDriverId());
+            movement.setImpact(dto.getImpact());
+            movement.setUncertainty(dto.getUncertainty());
+
+            movementRepository.save(movement);
         }
+
+        return "redirect:/panel";
+    }
     }
 
 

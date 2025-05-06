@@ -14,7 +14,7 @@ public class Movement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = true)
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
     @Column(name = "impact", nullable = true)

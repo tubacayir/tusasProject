@@ -23,8 +23,8 @@ public class User {
     public User() {}
 
     // Getters & Setters
-    public Long getId() {
-        return id;
+    public Integer getId() {
+        return Math.toIntExact(id);
     }
 
     public void setId(Long id) {

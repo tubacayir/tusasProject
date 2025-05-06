@@ -12,6 +12,7 @@ public class CustomUserDetails implements UserDetails {
 
     private final User user;
 
+
     public CustomUserDetails(User user) {
         this.user = user;
     }
@@ -38,5 +39,8 @@ public class CustomUserDetails implements UserDetails {
 
     public User getUser() {
         return user;
+    }
+    public Integer getId() {
+        return user.getId();
     }
 }
