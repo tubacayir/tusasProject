@@ -13,9 +13,6 @@ public class PageController {
         return "home";
     }
 
-
-
-
   @GetMapping("/panel")
   public String showPanelPage() {
     return "panel"; // src/main/resources/templates/panel.html

@@ -11,13 +11,5 @@ public class LoginController {
     public String Login() {
         return "login";
     }
-    @GetMapping("/default")
-    public String defaultAfterLogin(HttpServletRequest request) {
-        if (request.isUserInRole("MANAGER")) {
-            return "redirect:/panel";
-        } else if (request.isUserInRole("EXPERT")) {
-            return "redirect:/panel";
-        }
-        return "redirect:/login?unauthorized";
-    }
+
 }
