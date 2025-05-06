@@ -1,70 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Çember Etrafında Yazılar</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #f0f0f0;
-        }
-        svg {
-            width: 600px;
-            height: 600px;
-        }
-        text {
-            font-size: 12px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-        }
-    </style>
-</head>
-<body>
-<svg viewBox="0 0 600 600">
-    <circle cx="300" cy="300" r="200" stroke="black" fill="none" />
-    <g id="lines-and-texts"></g>
-</svg>
+<form method="post" action="/submit-driver-ratings">
+    <div th:each="entry : ${driversByCategory}">
+        <h2 th:text="${entry.key}" style="color:#00509e; margin-top: 2rem;">Kategori</h2>
 
-<script>
-    const centerX = 300;
-    const centerY = 300;
-    const radius = 200;
-    const textRadius = 220;
-    const count = 50;
-    const group = document.getElementById("lines-and-texts");
+        <div th:each="driver, iterStat : ${entry.value}" class="driver-card">
+            <h3 th:text="${driver.driverName}">Driver Adı</h3>
+            <input type="hidden" name="ratings[__${iterStat.index}__].name" th:value="${driver.driverName}" />
 
-    for (let i = 0; i < count; i++) {
-        const angle = (2 * Math.PI / count) * i;
-        const x1 = centerX;
-        const y1 = centerY;
-        const x2 = centerX + radius * Math.cos(angle);
-        const y2 = centerY + radius * Math.sin(angle);
+            <!-- Impact Rating -->
+            <div class="rating-group">
+                <label>Impact:</label>
+                <div class="rating-bar" th:attr="data-name='ratings[__${iterStat.index}__].impact'">
+                    <div class="rating-segment" data-value="1"></div>
+                    <div class="rating-segment" data-value="2"></div>
+                    <div class="rating-segment" data-value="3"></div>
+                    <div class="rating-segment" data-value="4"></div>
+                    <div class="rating-segment" data-value="5"></div>
+                </div>
+                <div class="rating-labels">
+                    <span>None</span>
+                    <span>Medium</span>
+                    <span>Very High</span>
+                </div>
+                <input type="hidden" name="ratings[__${iterStat.index}__].impact" required />
+            </div>
 
-        // Çizgi
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", x1);
-        line.setAttribute("y1", y1);
-        line.setAttribute("x2", x2);
-        line.setAttribute("y2", y2);
-        line.setAttribute("stroke", "black");
-        group.appendChild(line);
+            <!-- Uncertainty Rating -->
+            <div class="rating-group">
+                <label>Uncertainty:</label>
+                <div class="rating-bar" th:attr="data-name='ratings[__${iterStat.index}__].uncertainty'">
+                    <div class="rating-segment" data-value="1"></div>
+                    <div class="rating-segment" data-value="2"></div>
+                    <div class="rating-segment" data-value="3"></div>
+                    <div class="rating-segment" data-value="4"></div>
+                    <div class="rating-segment" data-value="5"></div>
+                </div>
+                <div class="rating-labels">
+                    <span>None</span>
+                    <span>Medium</span>
+                    <span>Very High</span>
+                </div>
+                <input type="hidden" name="ratings[__${iterStat.index}__].uncertainty" required />
+            </div>
+        </div>
+    </div>
 
-        // Yazı
-        const textX = centerX + textRadius * Math.cos(angle);
-        const textY = centerY + textRadius * Math.sin(angle);
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", textX);
-        text.setAttribute("y", textY);
-
-        // Açıyı dereceye çevirip yazıyı döndür
-        const degrees = angle * 180 / Math.PI;
-        text.setAttribute("transform", `rotate(${degrees}, ${textX}, ${textY})`);
-        text.textContent = `Yazı ${i + 1}`;
-        group.appendChild(text);
-    }
-</script>
-</body>
-</html>
+    <button type="submit" class="submit-button">Puanları Kaydet</button>
+</form>

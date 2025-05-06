@@ -38,6 +38,24 @@
             margin-bottom: 2rem;
         }
 
+        .user-info-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .user-info-box p {
+            margin: 4px 0;
+            color: #ffffff;
+        }
+
+        .user-info-box p strong {
+            color: #ffffcc;
+        }
+
         nav button {
             background: none;
             border: none;
@@ -106,9 +124,18 @@
 <!-- Sidebar -->
 <nav>
     <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
-    <button onclick="alert('Radar Görünümü')">Radar Görünümü</button>
-    <button onclick="alert('Analiz Paneli')">Analiz Paneli</button>
+
+    <div class="user-info-box">
+        <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
+        <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
+        <p> <strong th:text="${userExpertise}">Expertise</strong></p>
+
+    </div>
+    <p><strong>Mega Trends</strong></p>
+    <button onclick="alert('Defence')">Defence</button>
+    <button onclick="alert('Aviation')">Aviation</button>
 </nav>
+
 
 <!-- Main content -->
 <div class="main-wrapper">
@@ -153,13 +180,11 @@
     }
 
     async function renderRadar(data) {
-
         const width = chartElement.clientWidth;
         const height = chartElement.clientHeight;
         const radius = Math.min(width, height) / 4;
 
         setupSVG(width, height);
-
         container.selectAll("*").remove();
 
         const angleSlice = (2 * Math.PI) / data.length;
@@ -175,7 +200,6 @@
                 .style("stroke", "#ccc");
         }
 
-        // Draw axes
         data.forEach((d, i) => {
             const angle = i * angleSlice - Math.PI / 2;
             const x = radius * Math.cos(angle);
@@ -186,7 +210,6 @@
                 .style("stroke", "#aaa");
         });
 
-        // Points
         container.selectAll("circle.trend-point")
             .data(data)
             .enter()
@@ -214,7 +237,6 @@
                 window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
             });
 
-        // Labels
         container.selectAll("text.label")
             .data(data)
             .enter()
@@ -239,6 +261,7 @@
             .on("click", (event, d) => {
                 window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
             });
+
         svg.append("text")
             .attr("x", chartElement.clientWidth - 150)
             .attr("y", chartElement.clientHeight - 200)
@@ -246,6 +269,7 @@
             .style("font-size", "14px")
             .style("font-weight", "bold")
             .style("fill", "#333");
+
         const legendData = [
             { label: "0–1", color: "#d73027" },
             { label: "1–2", color: "#fc8d59" },
@@ -275,6 +299,7 @@
             .attr("y", (d, i) => i * 25 + 15)
             .text(d => d.label)
             .style("font-size", "14px");
+
         container.append("line")
             .attr("x1", -radius)
             .attr("y1", 0)
