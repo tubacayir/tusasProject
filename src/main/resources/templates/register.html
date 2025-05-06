@@ -161,8 +161,8 @@
         })
             .then(response => {
                 if (response.ok) {
-                    alert('Kayıt başarılı!');
-                    window.location.href = "/";
+                    alert('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...');
+                    window.location.href = "/login";
                 } else {
                     return response.text().then(msg => { throw new Error(msg); });
                 }
