@@ -1,17 +1,17 @@
 package com.example.TusasProject.controller;
 
-import com.example.TusasProject.service.UserService;
-import com.example.TusasProject.service.UserServiceImp;
-import org.springframework.beans.factory.annotation.Autowired;
+;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+
 
 @Controller
 public class PageController {
 
-
-    @Autowired
-    UserServiceImp userServiceImp;
+    @GetMapping("/")
+    public String home() {
+        return "home";
+    }
 
     @GetMapping("/expertLogin")
     public String expertLogin() {
@@ -32,6 +32,21 @@ public class PageController {
         return "driver";
     }
 
+
+    @GetMapping("/analyst")
+    public String showAnalystPage() {
+        return "analyst"; // src/main/resources/templates/analyst.html
+    }
+
+    @GetMapping("/expert")
+    public String showExpertPage() {
+        return "expert"; // src/main/resources/templates/expert.html
+    }
+
+    @GetMapping("/manager")
+    public String showManagerPage() {
+        return "manager"; // src/main/resources/templates/manager.html
+    }
 
 }
 

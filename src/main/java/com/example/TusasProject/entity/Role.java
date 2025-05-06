@@ -1,6 +1,5 @@
 package com.example.TusasProject.entity;
 
-
 import jakarta.persistence.*;
 
 @Entity
@@ -11,7 +10,8 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @Column(nullable = false, unique = true)
+    private String name; // Örn: "ANALYST", "EXPERT"
 
     public Role() {}
 

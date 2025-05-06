@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uzman Girişi</title>
+    <title>Analist Girişi</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,7 +32,7 @@
 
         .login-container input {
             width: 100%;
-            padding: 5px;
+            padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -48,7 +48,6 @@
             font-size: 16px;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
         }
 
         .login-container button:hover {
@@ -81,43 +80,20 @@
 <div class="login-container">
     <h1>Analist Girişi</h1>
 
-    <form id="loginForm" th:action="@{/managerLogin.html}" method="POST" onsubmit="return validateForm()">
-        <input type="text" id="username" name="email" placeholder="Email" required>
-        <input type="password" id="password" name="password" placeholder="Şifre" required>
+    <form th:action="@{/perform_login}" method="post">
+        <input type="text" name="username" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Şifre" required />
         <button type="submit">Giriş Yap</button>
-        <div class="error-message" id="error-message"></div>
+
+        <div class="error-message" th:if="${param.error}">
+            Geçersiz kullanıcı adı veya şifre!
+        </div>
     </form>
+
     <div class="info">
-        <p>hesabınız yok mu? <a th:href="@{/reset-password-expert}">Kayıt ol</a></p>
+        <p>Hesabınız yok mu? <a href="/reset-password-expert">Kayıt ol</a></p>
     </div>
 </div>
-
-<script>
-    function validateForm() {
-        // Get the input values
-        var username = document.getElementById("username").value;
-        var password = document.getElementById("password").value;
-        var errorMessage = document.getElementById("error-message");
-
-        // Clear any previous error messages
-        errorMessage.textContent = "";
-
-        // Basic validation for empty fields
-        if (username.trim() === "") {
-            errorMessage.textContent = "Kullanıcı adı boş olamaz!";
-            return false;
-        }
-
-        if (password.trim() === "") {
-            errorMessage.textContent = "Şifre boş olamaz!";
-            return false;
-        }
-
-        // Add any other validation logic as needed (e.g., regex for username or password)
-
-        return true; // Allow form submission if all validations pass
-    }
-</script>
 
 </body>
 </html>

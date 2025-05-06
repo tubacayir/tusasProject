@@ -5,17 +5,24 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String firstName; // İsim
-    private String lastName;  // Soyisim
+    private String firstName;
+    private String lastName;
     private String email;
     private String expertise;
-    private String password;  // Şifre
+    private String password;
 
-    // Getter ve Setter metodları
+    @ManyToOne(fetch = FetchType.EAGER)  // Eager: güvenlik için rol bilgisi hemen lazım olur
+    @JoinColumn(name = "role_id")
+    private Role role;
+
+    public User() {}
+
+    // Getters & Setters
     public Long getId() {
         return id;
     }
@@ -62,5 +69,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
