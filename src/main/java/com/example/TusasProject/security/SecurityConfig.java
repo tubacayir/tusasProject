@@ -27,21 +27,22 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/register", "/save", "/expertLogin", "/managerLogin", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/", "/register", "/save", "/login", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/analyst/**").hasRole("ANALYST")
                         .requestMatchers("/manager/**").hasRole("MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/expertLogin") // fallback login page olarak expertLogin
-                        .loginProcessingUrl("/perform_login") // form action buraya yönlendirilmeli
-                        .successHandler(successHandler) // rol bazlı yönlendirme
-                        .failureUrl("/expertLogin?error=true")
+                        .loginPage("/login")
+                        .usernameParameter("email")  // Email ile giriş
+                        .loginProcessingUrl("/perform_login")  // Form bu URL'ye yönlendirilecek
+                        .successHandler(successHandler)
+                        .failureUrl("/login?error=true")  // Hata durumunda
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/expertLogin?logout=true")
+                        .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 );
 

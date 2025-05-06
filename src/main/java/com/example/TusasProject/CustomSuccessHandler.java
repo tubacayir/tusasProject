@@ -22,7 +22,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
         for (GrantedAuthority authority : authorities) {
             String role = authority.getAuthority();
             if (role.equals("ROLE_MANAGER")) {
-                response.sendRedirect("/managerDashboard");
+                response.sendRedirect("/panel");
                 return;
             } else if (role.equals("ROLE_EXPERT")) {
                 response.sendRedirect("/panel");

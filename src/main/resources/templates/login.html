@@ -1,20 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="tr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analist Girişi</title>
+    <title>Giriş Yap</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            background-color: #eef2f3;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #eef2f3;
+            margin: 0;
         }
+
         .login-container {
             width: 400px;
             padding: 20px;
@@ -54,37 +53,38 @@
             background-color: #0056b3;
         }
 
-        .login-container .info {
+        .error-message {
+            color: red;
+            font-size: 14px;
             margin-top: 10px;
-            font-size: 12px;
-            color: #666;
         }
 
-        .login-container .info a {
+        .info {
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .info a {
             color: #007bff;
             text-decoration: none;
         }
 
-        .login-container .info a:hover {
+        .info a:hover {
             text-decoration: underline;
-        }
-
-        .error-message {
-            color: red;
-            font-size: 12px;
         }
     </style>
 </head>
 <body>
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Tai_logo.png/800px-Tai_logo.png" alt="TUSAŞ Logo">
 <div class="login-container">
-    <h1>Analist Girişi</h1>
+    <h1>Giriş Yap</h1>
 
+    <!-- Giriş formu -->
     <form th:action="@{/perform_login}" method="post">
-        <input type="text" name="username" placeholder="Email" required />
+        <input type="email" name="email" placeholder="Email" required />
         <input type="password" name="password" placeholder="Şifre" required />
         <button type="submit">Giriş Yap</button>
 
+        <!-- Hatalı giriş mesajı -->
         <div class="error-message" th:if="${param.error}">
             Geçersiz kullanıcı adı veya şifre!
         </div>
@@ -94,6 +94,5 @@
         <p>Hesabınız yok mu? <a href="/reset-password-expert">Kayıt ol</a></p>
     </div>
 </div>
-
 </body>
 </html>

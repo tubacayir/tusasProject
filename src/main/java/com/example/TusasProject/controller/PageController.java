@@ -13,15 +13,8 @@ public class PageController {
         return "home";
     }
 
-    @GetMapping("/expertLogin")
-    public String expertLogin() {
-        return "expertLogin";
-    }
 
-    @GetMapping("/managerLogin")
-    public String managerLogin() {
-        return "managerLogin";
-    }
+
 
   @GetMapping("/panel")
   public String showPanelPage() {
@@ -33,20 +26,9 @@ public class PageController {
     }
 
 
-    @GetMapping("/analyst")
-    public String showAnalystPage() {
-        return "analyst"; // src/main/resources/templates/analyst.html
-    }
 
-    @GetMapping("/expert")
-    public String showExpertPage() {
-        return "expert"; // src/main/resources/templates/expert.html
-    }
 
-    @GetMapping("/manager")
-    public String showManagerPage() {
-        return "manager"; // src/main/resources/templates/manager.html
-    }
+
 
 }
 
