@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Senaryo Oluşturma</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+            background-color: #f5f7fa;
+        }
+
+        .header {
+            background-color: #003366;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .scenario-box {
+            width: 100%;
+            height: 200px;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        .rating {
+            margin-top: 20px;
+        }
+
+        .rating input {
+            display: none;
+        }
+
+        .rating label {
+            font-size: 24px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .rating input:checked ~ label,
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: gold;
+        }
+
+        .generate-button {
+            padding: 10px 20px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>TUSAŞ Senaryo Oluşturma Aracı</h1>
+</div>
+
+<div class="container">
+    <form th:action="@{/generate-scenario}" method="post">
+        <!-- Önceki sayfadan seçilen driver'lar gizli alanla taşınıyor olabilir -->
+        <input type="hidden" name="driver1" th:value="${driver1}">
+        <input type="hidden" name="driver2" th:value="${driver2}">
+
+        <button class="generate-button" type="submit">Senaryoyu Modele Gönder ve Oluştur</button>
+    </form>
+
+    <textarea class="scenario-box" th:text="${generatedScenario}" readonly></textarea>
+
+    <div class="rating" th:if="${generatedScenario != null}">
+        <p>Senaryoyu Değerlendiriniz:</p>
+        <form th:action="@{/rate-scenario}" method="post">
+            <input type="hidden" name="scenarioText" th:value="${generatedScenario}">
+            <input type="radio" id="star1" name="rating" value="5"><label for="star1">&#9733;</label>
+            <input type="radio" id="star2" name="rating" value="4"><label for="star2">&#9733;</label>
+            <input type="radio" id="star3" name="rating" value="3"><label for="star3">&#9733;</label>
+            <input type="radio" id="star4" name="rating" value="2"><label for="star4">&#9733;</label>
+            <input type="radio" id="star5" name="rating" value="1"><label for="star5">&#9733;</label><br><br>
+            <button type="submit" class="generate-button">Gönder</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
