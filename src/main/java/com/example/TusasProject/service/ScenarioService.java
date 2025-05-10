@@ -18,7 +18,7 @@ public class ScenarioService {
     @Autowired
     private DriverRepository driverRepository;  // Bu repo üzerinden veritabanına erişeceğiz
 
-    private final String HF_TOKEN = "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";  // Hugging Face Token
+    private final String HF_TOKEN = "alpo";  // Hugging Face Token
     private final String MODEL_URL = "https://huggingface.co/tubacayir/generator";
 
     public String generateScenario(Long trendId) {
