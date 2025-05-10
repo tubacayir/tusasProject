@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tüm Trendler</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            padding: 2rem;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #003366;
+        }
+
+        input[type="text"] {
+            padding: 0.5rem;
+            width: 300px;
+            margin-right: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background-color: white;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #003366;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #eef;
+        }
+    </style>
+</head>
+<body>
+<h1>Tüm Trendler</h1>
+
+<input type="text" id="searchInput" placeholder="Trend adı ile ara..." />
+<button onclick="searchTrends()">Ara</button>
+
+<table id="trendsTable">
+    <thead>
+    <tr>
+        <th>Trend</th>
+        <th>Açıklama</th>
+        <th>Etki</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    async function fetchTrends(query = "") {
+        const res = await fetch(`/api/trends${query ? '?search=' + encodeURIComponent(query) : ''}`);
+        return res.ok ? res.json() : [];
+    }
+
+    async function renderTrends(query = "") {
+        const trends = await fetchTrends(query);
+        const tbody = document.querySelector("#trendsTable tbody");
+        tbody.innerHTML = "";
+
+        trends.forEach(trend => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                    <td>${trend.trend}</td>
+                    <td>${trend.definition}</td>
+                    <td>${trend.averageImpact}</td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function searchTrends() {
+        const query = document.getElementById("searchInput").value;
+        renderTrends(query);
+    }
+
+    renderTrends(); // İlk yüklemede hepsini getir
+</script>
+</body>
+</html>

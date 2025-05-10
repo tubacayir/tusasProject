@@ -1,4 +1,5 @@
 package com.example.TusasProject.entity;
+import com.example.TusasProject.dto.DriverRatingListDTO;
 import com.example.TusasProject.entity.enums.DriverCategory;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +9,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Driver {
+public class Driver extends DriverRatingListDTO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, Long> {
     List<Driver> findByTrend_TrendName(String trendName);
+    List<Driver> findByTrendId(Long trendId);
 }
