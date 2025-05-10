@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tüm Trendler</title>
+    <title>All Trends</title>
     <style>
         body {
             font-family: "Segoe UI", sans-serif;
@@ -54,17 +54,18 @@
     </style>
 </head>
 <body>
-<h1>Tüm Trendler</h1>
+<h1>All Trends</h1>
 
-<input type="text" id="searchInput" placeholder="Trend adı ile ara..." />
-<button onclick="searchTrends()">Ara</button>
+<input type="text" id="searchInput" placeholder="Find by trend name..."/>
+<button onclick="searchTrends()">Search</button>
 
 <table id="trendsTable">
     <thead>
     <tr>
-        <th>Trend</th>
-        <th>Açıklama</th>
-        <th>Etki</th>
+        <th>Trend Name</th>
+        <th>Definition</th>
+        <th>Average Impact</th>
+        <th>Scenarios</th>
     </tr>
     </thead>
     <tbody></tbody>
@@ -80,14 +81,19 @@
         const trends = await fetchTrends(query);
         const tbody = document.querySelector("#trendsTable tbody");
         tbody.innerHTML = "";
-
         trends.forEach(trend => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                    <td>${trend.trend}</td>
-                    <td>${trend.definition}</td>
-                    <td>${trend.averageImpact}</td>
-                `;
+                <td>${trend.trendName}</td>
+                <td>${trend.definition}</td>
+                <td>${trend.avgImpact}</td>
+                <td>
+                    <button onclick="createScenario(${trend.id})">Create Scenario</button>
+                    <button onclick="showScenario(${trend.id})">Show Scenario</button>
+                </td>
+            `;
+
+
             tbody.appendChild(row);
         });
     }
@@ -97,7 +103,27 @@
         renderTrends(query);
     }
 
-    renderTrends(); // İlk yüklemede hepsini getir
+    function createScenario(id) {
+        window.location.href = `/api/scenario/scenarios/create/${id}`;
+    }
+
+    function showScenario(id) {
+        window.location.href = `/api/scenario/scenarios/show/${id}`;
+    }
+    // Sayfa yüklendiğinde hepsini getir
+    renderTrends();
+
+    // Arama kutusuna yazarken anında filtreleme
+    document.getElementById("searchInput").addEventListener("keyup", (e) => {
+        const query = e.target.value;
+        renderTrends(query);
+
+        // Eğer Enter tuşuna basılmışsa, ayrıca da çalıştırmak istersen burada işlem yapabilirsin
+        if (e.key === "Enter") {
+            searchTrends();
+        }
+    });
 </script>
+
 </body>
 </html>

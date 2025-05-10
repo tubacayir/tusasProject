@@ -2,7 +2,7 @@
 <html lang="tr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Giriş Yap</title>
+    <title>Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,22 +76,22 @@
 </head>
 <body>
 <div class="login-container">
-    <h1>Giriş Yap</h1>
+    <h1>Login</h1>
 
     <!-- Giriş formu -->
     <form th:action="@{/perform_login}" method="post">
         <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Şifre" required />
-        <button type="submit">Giriş Yap</button>
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit">Login</button>
 
         <!-- Hatalı giriş mesajı -->
         <div class="error-message" th:if="${param.error}">
-            Geçersiz kullanıcı adı veya şifre!
+            Invalid username or password!
         </div>
     </form>
 
     <div class="info">
-        <p>Hesabınız yok mu? <a href="/reset-password-expert">Kayıt ol</a></p>
+        <p>Don't you have account? <a href="/register">Sign up</a></p>
     </div>
 </div>
 </body>

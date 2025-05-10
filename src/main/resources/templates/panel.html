@@ -134,6 +134,9 @@
     <p><strong>Mega Trends</strong></p>
     <button onclick="alert('Defence')">Defence</button>
     <button onclick="alert('Aviation')">Aviation</button>
+    <th:block th:if="${userRole == 'MANAGER'}">
+        <button onclick="window.location.href='/trends'">📈 Manage Trends</button>
+    </th:block>
 </nav>
 
 
@@ -321,11 +324,40 @@
     async function initialize() {
         const data = await fetchChartData();
         await renderRadar(data);
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+            const query = e.target.value;
+            applySearchFilter(query, data);
+        });
+
     }
+    function applySearchFilter(query, data) {
+        const lowerQuery = query.toLowerCase();
+
+        container.selectAll("circle.trend-point")
+            .attr("r", d => d.trend.toLowerCase().includes(lowerQuery) ? 12 : 6)
+            .attr("stroke", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "none")
+            .attr("stroke-width", d => d.trend.toLowerCase().includes(lowerQuery) ? 2 : 0);
+
+        container.selectAll("text.label")
+            .style("font-weight", d => d.trend.toLowerCase().includes(lowerQuery) ? "bold" : "normal")
+            .style("fill", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "#333");
+    }
+
 
     window.addEventListener("resize", initialize);
     initialize();
 </script>
-
+<input type="text" id="searchInput" placeholder="Search trends..." style="
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    width: 250px;
+    font-size: 0.9rem;
+    z-index: 1000;
+">
 </body>
+
 </html>

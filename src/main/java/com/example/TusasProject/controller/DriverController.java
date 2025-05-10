@@ -34,6 +34,7 @@ public class DriverController {
     private final DriverRepository driverRepository;
     private final TrendRepository trendRepository;
     private final MovementRepository movementRepository;
+    private final UserRepository userRepository;
 
 
 
@@ -47,7 +48,6 @@ public class DriverController {
     @GetMapping("/by-trend")
     public List<DriverDTO> getDriversByTrend(@RequestParam String trendName) {
         List<Trend> trends = trendRepository.findByTrendNameIgnoreCase(trendName);
-
         if (!trends.isEmpty()) {
             Trend trend = trends.get(0);
             return driverRepository.findAll().stream()

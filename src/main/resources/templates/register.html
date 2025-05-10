@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uzman Kayıt</title>
+    <title>Sign Up</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -100,24 +100,24 @@
     <h1>Uzman Kayıt</h1>
 
     <form id="registerForm">
-        <input type="text" id="firstName" name="firstName" placeholder="İsim" required>
-        <input type="text" id="lastName" name="lastName" placeholder="Soyisim" required>
-        <input type="email" id="email" name="email" placeholder="E-posta" required>
-        <input type="text" id="expertise" name="expertise" placeholder="Uzmanlık Alanı" required>
-        <input type="password" id="password" name="password" placeholder="Şifre" required>
+        <input type="text" id="firstName" name="firstName" placeholder="Name" required>
+        <input type="text" id="lastName" name="lastName" placeholder="Surname" required>
+        <input type="email" id="email" name="email" placeholder="E-mail" required>
+        <input type="text" id="expertise" name="expertise" placeholder="Majority" required>
+        <input type="password" id="password" name="password" placeholder="Password" required>
 
         <select id="role" name="role" required>
-            <option value="">Rol Seçin</option>
-            <option value="EXPERT">Uzman</option>
-            <option value="MANAGER">Yönetici</option>
+            <option value="">Role</option>
+            <option value="EXPERT">Expert</option>
+            <option value="MANAGER">Manager</option>
         </select>
 
-        <button type="submit">Kayıt Ol</button>
+        <button type="submit">Sign Up</button>
         <div class="error-message" id="error-message"></div>
     </form>
 
     <div class="info">
-        <p>Zaten hesabınız var mı? <a href="/login">Giriş yap</a></p>
+        <p>Already have an account? <a href="/login">Login</a></p>
     </div>
 </div>
 
@@ -137,13 +137,13 @@
 
         const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-        if (!firstName) return errorMessage.textContent = "İsim boş olamaz!";
-        if (!lastName) return errorMessage.textContent = "Soyisim boş olamaz!";
-        if (!email) return errorMessage.textContent = "E-posta adresi boş olamaz!";
-        if (!emailPattern.test(email)) return errorMessage.textContent = "Geçerli bir e-posta adresi girin!";
-        if (!expertise) return errorMessage.textContent = "Uzmanlık alanı boş olamaz!";
-        if (!password || password.length < 6) return errorMessage.textContent = "Şifre en az 6 karakter olmalıdır!";
-        if (!role) return errorMessage.textContent = "Lütfen bir rol seçin!";
+        if (!firstName) return errorMessage.textContent = "Name can not be empty!";
+        if (!lastName) return errorMessage.textContent = "Surname can not be empty!";
+        if (!email) return errorMessage.textContent = "Email can not be empty!";
+        if (!emailPattern.test(email)) return errorMessage.textContent = "Please enter a valid email!";
+        if (!expertise) return errorMessage.textContent = "Majority can not be empty!";
+        if (!password || password.length < 6) return errorMessage.textContent = "Password must be contain at least 6 characters!";
+        if (!role) return errorMessage.textContent = "Please pick a role!";
 
         fetch('/save', {
             method: 'POST',
@@ -161,15 +161,15 @@
         })
             .then(response => {
                 if (response.ok) {
-                    alert('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...');
+                    alert('Register successful...');
                     window.location.href = "/login";
                 } else {
                     return response.text().then(msg => { throw new Error(msg); });
                 }
             })
             .catch(error => {
-                errorMessage.textContent = "Kayıt sırasında hata oluştu: " + error.message;
-                console.error('Hata:', error);
+                errorMessage.textContent = "Error in register page: " + error.message;
+                console.error('Error:', error);
             });
     });
 </script>

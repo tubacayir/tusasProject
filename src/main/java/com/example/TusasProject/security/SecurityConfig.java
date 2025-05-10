@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/register", "/save", "/login", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/scenarioPanel").hasRole("MANAGER")
+                        .requestMatchers("/trends").hasRole("MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

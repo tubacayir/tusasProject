@@ -14,4 +14,6 @@ public interface TrendRepository extends JpaRepository<Trend, Long> {  // ID tip
     @Query("SELECT trend FROM Trend trend WHERE LOWER(trend.trendName) = LOWER(:trendName)")
     @Transactional(readOnly = true)
     List<Trend> findByTrendNameIgnoreCase(@Param("trendName") String trendName);
+    List<Trend> findByTrendNameContainingIgnoreCase(String trendName);
+
 }
