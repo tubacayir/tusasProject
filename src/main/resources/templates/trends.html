@@ -103,8 +103,28 @@
         renderTrends(query);
     }
 
-    function createScenario(id) {
-        window.location.href = `/api/scenario/scenarios/create/${id}`;
+    async function createScenario(id) {
+        try {
+            const res = await fetch("/api/scenario/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ trendId: id })
+            });
+
+            if (res.ok) {
+                const html = await res.text();
+                document.open();
+                document.write(html);
+                document.close();
+            } else {
+                alert("Failed to generate the scenario.");
+            }
+        } catch (err) {
+            alert("An unexpected error occurred.");
+            console.error(err);
+        }
     }
 
     function showScenario(id) {

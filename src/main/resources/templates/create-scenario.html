@@ -2,75 +2,68 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Show Scenario</title>
+    <title>Create Scenario</title>
     <style>
         body {
             font-family: "Segoe UI", sans-serif;
             padding: 2rem;
-            background-color: #f0f2f5;
+            background-color: #f5f5f5;
         }
 
-        h2 {
+        h1 {
             color: #003366;
         }
 
-        .scenario-container {
-            position: relative;
-            width: 600px;
-            height: 600px;
-            margin: 2rem auto;
-            background-color: white;
-            border: 2px solid #003366;
-            border-radius: 8px;
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        .quadrant {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            padding: 1rem;
-            box-sizing: border-box;
-        }
-
-        .top-left    { top: 0; left: 0; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; }
-        .top-right   { top: 0; left: 50%; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; }
-        .bottom-left { top: 50%; left: 0; border-top: 1px solid #ccc; border-right: 1px solid #ccc; }
-        .bottom-right{ top: 50%; left: 50%; border-top: 1px solid #ccc; border-left: 1px solid #ccc; }
-
-        .label {
-            font-weight: bold;
-            color: #003366;
-            margin-bottom: 0.5rem;
-        }
-
-        .scenario-text {
-            font-size: 0.95rem;
-            color: #333;
+        .info {
+            margin-bottom: 2rem;
         }
     </style>
 </head>
 <body>
+<h1>Senaryo Üret</h1>
 
-<h2 th:text="'Scenario for: ' + ${trend.trendName}">Show Scenario</h2>
-
-<div class="scenario-container">
-    <div class="quadrant top-left">
-        <div class="label">Scenario D<br>(−X, +Y)</div>
-        <div class="scenario-text" th:text="${scenarioD}">...</div>
-    </div>
-    <div class="quadrant top-right">
-        <div class="label">Scenario A<br>(+X, +Y)</div>
-        <div class="scenario-text" th:text="${scenarioA}">...</div>
-    </div>
-    <div class="quadrant bottom-left">
-        <div class="label">Scenario C<br>(−X, −Y)</div>
-        <div class="scenario-text" th:text="${scenarioC}">...</div>
-    </div>
-    <div class="quadrant bottom-right">
-        <div class="label">Scenario B<br>(+X, −Y)</div>
-        <div class="scenario-text" th:text="${scenarioB}">...</div>
-    </div>
+<div class="info">
+    <p><strong>Trend:</strong> <span th:text="${trend.trendName}">Trend Adı</span></p>
+    <p><strong>Açıklama:</strong> <span th:text="${trend.definition}">Trend açıklaması</span></p>
 </div>
 
+<form id="scenarioForm">
+    <input type="hidden" id="trendId" th:value="${trend.id}" />
+    <button type="submit">Senaryo Üret</button>
+</form>
+
+<script>
+    document.getElementById("scenarioForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const trendId = document.getElementById("trendId").value;
+
+        const res = await fetch("/api/scenario/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ trendId: trendId })
+        });
+
+        if (res.ok) {
+            const html = await res.text();
+            document.open();
+            document.write(html);
+            document.close();
+        } else {
+            alert("Senaryo üretimi başarısız.");
+        }
+    });
+</script>
 </body>
 </html>

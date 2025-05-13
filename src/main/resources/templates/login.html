@@ -24,9 +24,15 @@
         }
 
         .login-container h1 {
-            font-size: 22px;
+            font-size: 24px;
             margin-bottom: 20px;
-            color: #333;
+            color: #003366;
+            font-weight: bold;
+        }
+
+        .login-container img {
+            width: 120px;
+            margin-bottom: 20px;
         }
 
         .login-container input {
@@ -42,7 +48,7 @@
             padding: 12px;
             margin: 10px 0;
             border: none;
-            background-color: #007bff;
+            background-color: #003366;
             color: white;
             font-size: 16px;
             border-radius: 4px;
@@ -50,7 +56,7 @@
         }
 
         .login-container button:hover {
-            background-color: #0056b3;
+            background-color: #00509e;
         }
 
         .error-message {
@@ -65,7 +71,7 @@
         }
 
         .info a {
-            color: #007bff;
+            color: #003366;
             text-decoration: none;
         }
 
@@ -75,24 +81,25 @@
     </style>
 </head>
 <body>
+
 <div class="login-container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Tai_logo.png/800px-Tai_logo.png" alt="TUSAŞ Logo" />
     <h1>Login</h1>
 
-    <!-- Giriş formu -->
     <form th:action="@{/perform_login}" method="post">
         <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" required />
+        <input type="password" name="password" placeholder="Şifre" required />
         <button type="submit">Login</button>
 
-        <!-- Hatalı giriş mesajı -->
         <div class="error-message" th:if="${param.error}">
-            Invalid username or password!
+            Geçersiz kullanıcı adı veya şifre!
         </div>
     </form>
 
     <div class="info">
-        <p>Don't you have account? <a href="/register">Sign up</a></p>
+        <p>Sign in <a href="/register">Sign in</a></p>
     </div>
 </div>
+
 </body>
 </html>

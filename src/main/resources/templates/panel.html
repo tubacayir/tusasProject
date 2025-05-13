@@ -129,16 +129,20 @@
         <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
         <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
         <p> <strong th:text="${userExpertise}">Expertise</strong></p>
-
     </div>
+
     <p><strong>Mega Trends</strong></p>
     <button onclick="alert('Defence')">Defence</button>
     <button onclick="alert('Aviation')">Aviation</button>
     <th:block th:if="${userRole == 'MANAGER'}">
-        <button onclick="window.location.href='/trends'">📈 Manage Trends</button>
+        <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
     </th:block>
-</nav>
 
+    <!-- Logout button (added here) -->
+    <div style="margin-top: auto;">
+        <button onclick="logout()" style="background-color: #cc0000; color: white;">🔓 Logout</button>
+    </div>
+</nav>
 
 <!-- Main content -->
 <div class="main-wrapper">
@@ -328,8 +332,8 @@
             const query = e.target.value;
             applySearchFilter(query, data);
         });
-
     }
+
     function applySearchFilter(query, data) {
         const lowerQuery = query.toLowerCase();
 
@@ -343,10 +347,22 @@
             .style("fill", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "#333");
     }
 
+    function logout() {
+        fetch('/logout', {
+            method: 'POST',
+            credentials: 'include'
+        }).then(() => {
+            window.location.href = '/login';
+        }).catch(err => {
+            alert("Logout failed!");
+            console.error(err);
+        });
+    }
 
     window.addEventListener("resize", initialize);
     initialize();
 </script>
+
 <input type="text" id="searchInput" placeholder="Search trends..." style="
     position: fixed;
     top: 15px;
@@ -358,6 +374,6 @@
     font-size: 0.9rem;
     z-index: 1000;
 ">
-</body>
 
+</body>
 </html>

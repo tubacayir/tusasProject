@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUSAŞ</title>
+    <title>TAI</title>
     <style>
-        /* Genel Stiller */
         * {
             margin: 0;
             padding: 0;
@@ -17,12 +16,10 @@
             background-color: #f4f4f4;
             color: #333;
             line-height: 1.6;
-            position: relative;
         }
 
-        /* Navbar */
         .navbar {
-            background-color: #003366; /* TUSAŞ mavi tonu */
+            background-color: #003366;
             color: white;
             padding: 10px 20px;
             display: flex;
@@ -41,15 +38,13 @@
             text-decoration: underline;
         }
 
-        /* Hero Bölümü - Logo ve Tanıtım */
         .hero {
-            height: 150px; /* Yüksekliği küçük tutalım */
+            height: 150px;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
-            position: relative;
-            background-color: #003366; /* TUSAŞ mavi tonu */
+            background-color: #003366;
         }
 
         .hero h1 {
@@ -57,7 +52,6 @@
             color: white;
         }
 
-        /* İçerik Bölümü */
         .container {
             display: flex;
             justify-content: space-between;
@@ -68,7 +62,7 @@
         }
 
         .intro {
-            width: 50%; /* Yarı genişlikte */
+            width: 50%;
         }
 
         .intro h3 {
@@ -83,22 +77,22 @@
         }
 
         .image {
-            width: 45%;
+            width: 65%;
         }
 
         .image img {
             width: 100%;
-            height: 300px;
+            height: 400px;
+            object-fit: cover;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
 
-
 <div class="navbar">
     <div class="logo">
-        <h2>TUSAŞ</h2>
+        <h2>TAI</h2>
     </div>
     <div>
         <a th:href="@{/register}" class="btn">Register</a>
@@ -106,26 +100,23 @@
     </div>
 </div>
 
-<!-- Hero Bölümü - Logo ve Tanıtım -->
 <div class="hero">
-    <h1>Gelecek Senaryoları Yazım Aracı</h1>
+    <h1>Scenario Writing Tool for Future Technologies</h1>
 </div>
 
-<!-- İçerik Bölümü -->
 <div class="container">
-    <!-- Tanıtım Yazısı -->
     <div class="intro">
-        <h3>Projenin Amacı</h3>
+        <h3>Project Purpose</h3>
         <p>
-            TUSAŞ Gelecek Senaryoları Yazım Aracı, teknoloji uzmanlarının gelecekteki gelişmeleri
-            öngörerek yenilikçi senaryolar oluşturmasına olanak tanır. Bu platform, uzman görüşlerini
-            toplar ve bu verilerle geleceğe dair stratejik yönelimler belirlemek için kullanılabilecek
-            güçlü bir kaynak sunar.
+            The TAI Future Scenario Writing Tool enables technology experts to forecast upcoming developments
+            and build innovative scenarios. This platform collects expert insights and serves as a powerful resource
+            for identifying strategic directions for the future.
         </p>
     </div>
     <div class="image">
-        <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo">
+        <img src="/images/tai_logo.jpeg" alt="TAI">
     </div>
 </div>
+
 </body>
 </html>

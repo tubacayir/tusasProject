@@ -56,7 +56,7 @@
             padding: 12px;
             margin-top: 10px;
             border: none;
-            background-color: #007bff;
+            background-color:#003366;
             color: white;
             font-size: 16px;
             border-radius: 4px;
@@ -65,7 +65,7 @@
         }
 
         .register-container button:hover {
-            background-color: #0056b3;
+            background-color: #0b2642;
         }
 
         .register-container .info {
@@ -75,7 +75,7 @@
         }
 
         .register-container .info a {
-            color: #007bff;
+            color: #0b1a28;
             text-decoration: none;
         }
 
@@ -97,13 +97,13 @@
 </div>
 
 <div class="register-container">
-    <h1>Uzman Kayıt</h1>
+    <h1>Sign Up</h1>
 
     <form id="registerForm">
         <input type="text" id="firstName" name="firstName" placeholder="Name" required>
         <input type="text" id="lastName" name="lastName" placeholder="Surname" required>
         <input type="email" id="email" name="email" placeholder="E-mail" required>
-        <input type="text" id="expertise" name="expertise" placeholder="Majority" required>
+        <input type="text" id="expertise" name="expertise" placeholder="Expertise" required>
         <input type="password" id="password" name="password" placeholder="Password" required>
 
         <select id="role" name="role" required>
@@ -141,8 +141,8 @@
         if (!lastName) return errorMessage.textContent = "Surname can not be empty!";
         if (!email) return errorMessage.textContent = "Email can not be empty!";
         if (!emailPattern.test(email)) return errorMessage.textContent = "Please enter a valid email!";
-        if (!expertise) return errorMessage.textContent = "Majority can not be empty!";
-        if (!password || password.length < 6) return errorMessage.textContent = "Password must be contain at least 6 characters!";
+        if (!expertise) return errorMessage.textContent = "Expertise can not be empty!";
+        if (!password || password.length < 6) return errorMessage.textContent = "Password must contain at least 6 characters!";
         if (!role) return errorMessage.textContent = "Please pick a role!";
 
         fetch('/save', {
@@ -161,14 +161,14 @@
         })
             .then(response => {
                 if (response.ok) {
-                    alert('Register successful...');
+                    alert('Registration successful...');
                     window.location.href = "/login";
                 } else {
                     return response.text().then(msg => { throw new Error(msg); });
                 }
             })
             .catch(error => {
-                errorMessage.textContent = "Error in register page: " + error.message;
+                errorMessage.textContent = "Error in registration page: " + error.message;
                 console.error('Error:', error);
             });
     });

@@ -7,69 +7,69 @@
         body {
             font-family: "Segoe UI", sans-serif;
             padding: 2rem;
-            background-color: #f0f2f5;
+            background-color: #f5f5f5;
         }
 
-        h2 {
+        h1 {
             color: #003366;
         }
 
-        .scenario-container {
-            position: relative;
-            width: 600px;
-            height: 600px;
+        .container {
+            max-width: 800px;
             margin: 2rem auto;
             background-color: white;
-            border: 2px solid #003366;
+            padding: 2rem;
             border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .quadrant {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            padding: 1rem;
-            box-sizing: border-box;
+        .trend-info {
+            margin-bottom: 1.5rem;
         }
 
-        .top-left    { top: 0; left: 0; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; }
-        .top-right   { top: 0; left: 50%; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; }
-        .bottom-left { top: 50%; left: 0; border-top: 1px solid #ccc; border-right: 1px solid #ccc; }
-        .bottom-right{ top: 50%; left: 50%; border-top: 1px solid #ccc; border-left: 1px solid #ccc; }
-
-        .label {
-            font-weight: bold;
+        .trend-info strong {
             color: #003366;
-            margin-bottom: 0.5rem;
         }
 
-        .scenario-text {
-            font-size: 0.95rem;
+        .scenario-box {
+            background-color: #e9f0fa;
+            padding: 1.5rem;
+            border-left: 6px solid #003366;
+            border-radius: 4px;
+            font-size: 1rem;
             color: #333;
+            white-space: pre-line;
         }
+
+        button {
+            margin-top: 2rem;
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
 
-<h2 th:text="'Scenario for: ' + ${trend.trendName}">Show Scenario</h2>
+<div class="container">
+    <h1 th:text="'Scenario for: ' + ${trend.trendName}">Scenario Title</h1>
 
-<div class="scenario-container">
-    <div class="quadrant top-left">
-        <div class="label">Scenario D<br>(−X, +Y)</div>
-        <div class="scenario-text" th:text="${scenarioD}">...</div>
+    <div class="trend-info">
+        <p><strong>Description:</strong> <span th:text="${trend.definition}">Trend description goes here</span></p>
     </div>
-    <div class="quadrant top-right">
-        <div class="label">Scenario A<br>(+X, +Y)</div>
-        <div class="scenario-text" th:text="${scenarioA}">...</div>
+
+    <div class="scenario-box" th:text="${scenarioText}">
+        This is where the generated scenario text will appear. It can be a summary or detailed narrative.
     </div>
-    <div class="quadrant bottom-left">
-        <div class="label">Scenario C<br>(−X, −Y)</div>
-        <div class="scenario-text" th:text="${scenarioC}">...</div>
-    </div>
-    <div class="quadrant bottom-right">
-        <div class="label">Scenario B<br>(+X, −Y)</div>
-        <div class="scenario-text" th:text="${scenarioB}">...</div>
-    </div>
+
+    <form th:action="@{/trends}" method="get">
+        <button type="submit">Back to All Trends</button>
+    </form>
 </div>
 
 </body>
