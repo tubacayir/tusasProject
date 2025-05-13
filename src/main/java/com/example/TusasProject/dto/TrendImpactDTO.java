@@ -1,40 +1,30 @@
 package com.example.TusasProject.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class TrendImpactDTO {
     private String trend;
-    private double averageImpact;
     private String definition;
+    double avgSocialImpact;
+    double avgEconomicImpact;
+    double avgEnvironmentalImpact;
+    double avgTechnologicalImpact;
+    double avgPoliticalImpact;
 
-    public TrendImpactDTO(String trend, double averageImpact, String definition) {
+    public TrendImpactDTO(String trend, String definition, double avgSocialImpact, double avgEconomicImpact,
+                          double avgEnvironmentalImpact, double avgTechnologicalImpact,
+                          double avgPoliticalImpact) {
         this.trend = trend;
-        this.averageImpact = averageImpact;
         this.definition = definition;
-    }
-
-    public String getTrend() {
-        return trend;
-    }
-
-    public void setTrend(String trend) {
-        this.trend = trend;
-    }
-
-    public double getAverageImpact() {
-        return averageImpact;
-    }
-
-    public void setAverageImpact(double averageImpact) {
-        this.averageImpact = averageImpact;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
+        this.avgSocialImpact = avgSocialImpact;
+        this.avgEconomicImpact=avgEconomicImpact;
+        this.avgTechnologicalImpact=avgTechnologicalImpact;
+        this.avgEnvironmentalImpact=avgEnvironmentalImpact;
+        this.avgPoliticalImpact=avgPoliticalImpact;
     }
 
 
-    // Getters and setters
 }

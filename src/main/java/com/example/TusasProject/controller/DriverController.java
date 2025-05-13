@@ -9,6 +9,7 @@ import com.example.TusasProject.entity.Driver;
 import com.example.TusasProject.entity.Movement;
 import com.example.TusasProject.entity.Trend;
 import com.example.TusasProject.entity.User;
+import com.example.TusasProject.entity.enums.DriverCategory;
 import com.example.TusasProject.repository.DriverRepository;
 import com.example.TusasProject.repository.MovementRepository;
 import com.example.TusasProject.repository.TrendRepository;
@@ -23,7 +24,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -70,27 +73,42 @@ public class DriverController {
     // Her trend için ortalama impact hesapla
     @GetMapping("/average-impacts")
     public List<TrendImpactDTO> getAverageImpactPerTrend() {
-        List<Trend> trends = trendRepository.findAll()
-                .stream()
-                .limit(80)
-                .collect(Collectors.toList());
+        List<Trend> trends = trendRepository.findAll().stream().limit(80).toList();
+        List<Driver> allDrivers = driverRepository.findAll();
+        Map<Long, List<Driver>> driversByTrend = allDrivers.stream()
+                .filter(d -> d.getTrend() != null)
+                .collect(Collectors.groupingBy(d -> d.getTrend().getId()));
 
-        return trends.stream()
-                .map(trend -> {
-                    List<Driver> drivers = driverRepository.findAll()
-                            .stream()
-                            .filter(driver -> driver.getTrend().getId().equals(trend.getId()))
-                            .collect(Collectors.toList());
+        return trends.stream().map(trend -> {
+            List<Driver> drivers = driversByTrend.getOrDefault(trend.getId(), Collections.emptyList());
 
-                    double avgImpact = drivers.stream()
-                            .mapToDouble(d -> d.getImpact() != null ? d.getImpact() : 0.0)
-                            .average()
-                            .orElse(0.0);
+            double avgSocialImpact = averageImpactForCategory(drivers, DriverCategory.SOCIAL);
+            double avgEconomicImpact = averageImpactForCategory(drivers, DriverCategory.ECONOMIC);
+            double avgEnvironmentalImpact = averageImpactForCategory(drivers, DriverCategory.ENVIRONMENTAL);
+            double avgTechnologicalImpact = averageImpactForCategory(drivers, DriverCategory.TECHNOLOGICAL);
+            double avgPoliticalImpact = averageImpactForCategory(drivers, DriverCategory.POLITICAL);
 
-                    return new TrendImpactDTO(trend.getTrendName(), avgImpact, trend.getDefinition());
-                })
-                .collect(Collectors.toList());
+            return new TrendImpactDTO(
+                    trend.getTrendName(),
+                    trend.getDefinition(),
+                    avgSocialImpact,
+                    avgEconomicImpact,
+                    avgEnvironmentalImpact,
+                    avgTechnologicalImpact,
+                    avgPoliticalImpact
+            );
+        }).collect(Collectors.toList());
     }
+
+    private double averageImpactForCategory(List<Driver> drivers, DriverCategory category) {
+        return drivers.stream()
+                .filter(d -> category.equals(d.getDriverCategory()))
+                .filter(d -> d.getImpact() != null)
+                .mapToDouble(Driver::getImpact)
+                .average()
+                .orElse(0.0);
+    }
+
 
     @PostMapping("/update")
     public ResponseEntity<?> updateDrivers(@RequestBody List<DriverDTO> driverDtos) {
