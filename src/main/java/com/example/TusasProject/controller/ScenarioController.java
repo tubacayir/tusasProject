@@ -2,12 +2,18 @@ package com.example.TusasProject.controller;
 
 import com.example.TusasProject.dto.ScenarioGenerationRequest;
 import com.example.TusasProject.entity.Driver;
+import com.example.TusasProject.entity.Scenario;
 import com.example.TusasProject.entity.Trend;
+import com.example.TusasProject.entity.User;
 import com.example.TusasProject.repository.DriverRepository;
+import com.example.TusasProject.repository.ScenarioRepository;
 import com.example.TusasProject.repository.TrendRepository;
+import com.example.TusasProject.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/api/scenario")
@@ -26,6 +33,12 @@ public class ScenarioController {
 
     @Autowired
     private DriverRepository driverRepository;
+
+    @Autowired
+    private ScenarioRepository scenarioRepository;
+    @Autowired
+    private UserRepository userRepository;
+
 
     @PostMapping("/generate")
     @PreAuthorize("hasRole('MANAGER')")
@@ -93,6 +106,28 @@ public class ScenarioController {
         model.addAttribute("scenarioB", "Technology improves but trust and governance collapse.");
         model.addAttribute("scenarioC", "Regression in innovation and increasing global conflicts.");
         model.addAttribute("scenarioD", "Social awareness increases despite economic stagnation.");
+
+        return "show-scenario";
+    }
+    @PostMapping("/save")
+    @PreAuthorize("hasRole('MANAGER')")
+    public String saveScenario(@RequestParam Long trendId, @RequestParam String scenarioText, Model model) {
+        Trend trend = trendRepository.getReferenceById(trendId);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Optional<User> user = userRepository.findByEmail(email); // kullanıcıyı al
+
+        Scenario scenario = new Scenario();
+        scenario.setTrend(trend);
+        scenario.setScenarioText(scenarioText);
+        scenario.setUser(user.orElse(null));
+
+        scenarioRepository.save(scenario);
+
+        model.addAttribute("trend", trend);
+        model.addAttribute("scenarioText", scenarioText);
+        model.addAttribute("message", "Scenario saved successfully.");
 
         return "show-scenario";
     }

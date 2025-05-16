@@ -32,7 +32,7 @@
             color: #003366;
         }
 
-        .scenario-box {
+        .scenario-box, textarea {
             background-color: #e9f0fa;
             padding: 1.5rem;
             border-left: 6px solid #003366;
@@ -40,10 +40,18 @@
             font-size: 1rem;
             color: #333;
             white-space: pre-line;
+            width: 100%;
+            border: none;
         }
 
-        button {
-            margin-top: 2rem;
+        textarea {
+            resize: vertical;
+            font-family: inherit;
+            height: 300px;
+        }
+
+        .btn {
+            margin-top: 1.5rem;
             padding: 0.5rem 1rem;
             background-color: #003366;
             color: white;
@@ -52,6 +60,10 @@
             cursor: pointer;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -63,14 +75,41 @@
         <p><strong>Description:</strong> <span th:text="${trend.definition}">Trend description goes here</span></p>
     </div>
 
-    <div class="scenario-box" th:text="${scenarioText}">
-        This is where the generated scenario text will appear. It can be a summary or detailed narrative.
-    </div>
+    <!-- Görüntüleme Kutusu -->
+    <div id="view-box" class="scenario-box" th:text="${scenarioText}"></div>
 
-    <form th:action="@{/trends}" method="get">
-        <button type="submit">Back to All Trends</button>
+    <!-- Düzenleme Formu -->
+    <form id="edit-form" th:action="@{/api/scenario/save}" method="post" style="display:none;">
+        <input type="hidden" name="trendId" th:value="${trend.id}" />
+        <textarea name="scenarioText" th:text="${scenarioText}"></textarea>
+        <div class="btn-group">
+            <button type="submit" class="btn">Save</button>
+            <button type="button" onclick="cancelEdit()" class="btn" style="background-color: gray;">Cancel</button>
+        </div>
     </form>
+
+    <!-- Butonlar -->
+    <div>
+        <button id="editBtn" class="btn" onclick="enableEdit()">Edit Scenario</button>
+        <form th:action="@{/trends}" method="get" style="display:inline;">
+            <button type="submit" class="btn">Back to All Trends</button>
+        </form>
+    </div>
 </div>
+
+<script>
+    function enableEdit() {
+        document.getElementById("view-box").style.display = "none";
+        document.getElementById("edit-form").style.display = "block";
+        document.getElementById("editBtn").style.display = "none";
+    }
+
+    function cancelEdit() {
+        document.getElementById("edit-form").style.display = "none";
+        document.getElementById("view-box").style.display = "block";
+        document.getElementById("editBtn").style.display = "inline-block";
+    }
+</script>
 
 </body>
 </html>
