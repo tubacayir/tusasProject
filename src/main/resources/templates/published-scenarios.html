@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Published Scenarios</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f5f5;
+            padding: 2rem;
+        }
+
+        h1 {
+            color: #003366;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .scenario-list {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .scenario-item {
+            border-bottom: 1px solid #ddd;
+            padding: 1rem 0;
+        }
+
+        .scenario-item:last-child {
+            border-bottom: none;
+        }
+
+        .trend-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 0.5rem;
+        }
+
+        .scenario-text {
+            background-color: #eef3fa;
+            padding: 1rem;
+            border-left: 4px solid #003366;
+            border-radius: 4px;
+            white-space: pre-line;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .scenario-meta {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 0.25rem;
+        }
+
+        .back-button {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #002244;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Published Scenarios</h1>
+
+<div class="scenario-list">
+    <div th:if="${scenarios.size() == 0}">
+        <p>No published scenarios available.</p>
+    </div>
+
+    <div th:each="scenario : ${scenarios}" class="scenario-item">
+        <div class="trend-title" th:text="${scenario.trend.trendName}">Trend Name</div>
+        <div class="scenario-text" th:text="${scenario.scenarioText}">Scenario content goes here...</div>
+
+    </div>
+
+    <div class="back-button">
+        <a th:href="@{/trends}" class="btn">Back to All Trends</a>
+    </div>
+</div>
+
+</body>
+</html>

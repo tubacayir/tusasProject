@@ -53,17 +53,17 @@ public class ScenarioController {
         }
 
         String prompt = """
-        Write a well-structured and coherent scenario in a narrative style (not in bullet points) based on the trend and key drivers below. 
-        Start with "Scenario:" and follow a natural flow. Do not include explanations or extra details outside the core theme. 
-        Keep it focused and insightful.
+                Write a well-structured and coherent scenario in a narrative style (not in bullet points) based on the trend and key drivers below. 
+                Start with "Scenario:" and follow a natural flow. Do not include explanations or extra details outside the core theme. 
+                Keep it focused and insightful.
 
-        Trend: %s
+                Trend: %s
 
-        Key Drivers:
-        %s
+                Key Drivers:
+                %s
 
-        Scenario:
-        """.formatted(trend.getTrendName(), driversText.toString().trim());
+                Scenario:
+                """.formatted(trend.getTrendName(), driversText.toString().trim());
 
         String flaskUrl = "https://primary-skunk-allowing.ngrok-free.app/generate";
 
@@ -101,34 +101,67 @@ public class ScenarioController {
     public String showScenario(@PathVariable Long trendId, Model model) {
         Trend trend = trendRepository.getReferenceById(trendId);
         model.addAttribute("trend", trend);
-
-        model.addAttribute("scenarioA", "Rapid digitalization and global AI adoption drive positive trends.");
-        model.addAttribute("scenarioB", "Technology improves but trust and governance collapse.");
-        model.addAttribute("scenarioC", "Regression in innovation and increasing global conflicts.");
-        model.addAttribute("scenarioD", "Social awareness increases despite economic stagnation.");
-
+        Scenario scenario = scenarioRepository.findByTrendId(trendId);
+        model.addAttribute("scenarioText", scenario != null ? scenario.getScenarioText() : null);
         return "show-scenario";
     }
+
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
     public String saveScenario(@RequestParam Long trendId, @RequestParam String scenarioText, Model model) {
-        Trend trend = trendRepository.getReferenceById(trendId);
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         Optional<User> user = userRepository.findByEmail(email); // kullanıcıyı al
+        Trend trend = trendRepository.getReferenceById(trendId);
+        Scenario scenario1 = scenarioRepository.findByTrendId(trendId);
+        if (scenario1 != null) {
+            scenarioRepository.deleteById(scenario1.getId());
+            saveScenarioDB(scenarioText, trend, user);
 
-        Scenario scenario = new Scenario();
-        scenario.setTrend(trend);
-        scenario.setScenarioText(scenarioText);
-        scenario.setUser(user.orElse(null));
+        } else {
+            saveScenarioDB(scenarioText, trend, user);
+        }
 
-        scenarioRepository.save(scenario);
 
         model.addAttribute("trend", trend);
         model.addAttribute("scenarioText", scenarioText);
         model.addAttribute("message", "Scenario saved successfully.");
 
         return "show-scenario";
+    }
+
+    private void saveScenarioDB(String scenarioText, Trend trend, Optional<User> user) {
+        Scenario scenario = new Scenario();
+        scenario.setTrend(trend);
+        scenario.setScenarioText(scenarioText);
+        scenario.setUser(user.orElse(null));
+        scenario.setIsPublished(false);
+        scenarioRepository.save(scenario);
+    }
+
+    // ScenarioController.java
+    @PostMapping("/publish/{trendId}")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<?> publishScenario(@PathVariable Long trendId) {
+        Scenario scenario = scenarioRepository.findByTrendId(trendId);
+        if (scenario != null) {
+            scenario.setIsPublished(true);
+            scenarioRepository.save(scenario);
+            return ResponseEntity.ok().build();
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Scenario not found for this trend");
+        }
+    }
+
+    @GetMapping("/published-scenarios")
+    public String getPublishedScenarios(Model model) {
+            List<Scenario> publishedScenarios = scenarioRepository.findByIsPublishedTrueOrderByUpdatedAtDesc();
+
+        model.addAttribute("scenarios", publishedScenarios);
+
+        // published-scenarios.html Thymeleaf şablonuna yönlendir
+        return "published-scenarios";
+
     }
 }

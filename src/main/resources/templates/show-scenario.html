@@ -32,7 +32,7 @@
             color: #003366;
         }
 
-        .scenario-box, textarea {
+        .scenario-box {
             background-color: #e9f0fa;
             padding: 1.5rem;
             border-left: 6px solid #003366;
@@ -45,13 +45,21 @@
         }
 
         textarea {
-            resize: vertical;
+            width: 100%;
+            background-color: #e9f0fa;
+            padding: 1.5rem;
+            border-left: 6px solid #003366;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: #333;
             font-family: inherit;
+            resize: vertical;
             height: 300px;
+            border: none;
         }
 
         .btn {
-            margin-top: 1.5rem;
+            margin-top: 1rem;
             padding: 0.5rem 1rem;
             background-color: #003366;
             color: white;
@@ -63,6 +71,12 @@
         .btn-group {
             display: flex;
             gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-green {
+            background-color: green;
         }
     </style>
 </head>
@@ -79,18 +93,17 @@
     <div id="view-box" class="scenario-box" th:text="${scenarioText}"></div>
 
     <!-- Düzenleme Formu -->
-    <form id="edit-form" th:action="@{/api/scenario/save}" method="post" style="display:none;">
+    <form id="edit-form" th:action="@{/api/scenario/save}" method="post">
         <input type="hidden" name="trendId" th:value="${trend.id}" />
-        <textarea name="scenarioText" th:text="${scenarioText}"></textarea>
-        <div class="btn-group">
-            <button type="submit" class="btn">Save</button>
-            <button type="button" onclick="cancelEdit()" class="btn" style="background-color: gray;">Cancel</button>
-        </div>
+        <textarea id="scenarioInput" name="scenarioText" th:text="${scenarioText}" style="display: none;"></textarea>
     </form>
 
     <!-- Butonlar -->
-    <div>
-        <button id="editBtn" class="btn" onclick="enableEdit()">Edit Scenario</button>
+    <div class="btn-group">
+        <button id="editBtn" class="btn" type="button" onclick="enableEdit()">Edit Scenario</button>
+        <button id="inlineSaveBtn" class="btn" type="button" onclick="submitScenario()">Save</button>
+        <button class="btn btn-green" type="button" onclick="publishScenario()">Publish</button>
+
         <form th:action="@{/trends}" method="get" style="display:inline;">
             <button type="submit" class="btn">Back to All Trends</button>
         </form>
@@ -100,15 +113,67 @@
 <script>
     function enableEdit() {
         document.getElementById("view-box").style.display = "none";
-        document.getElementById("edit-form").style.display = "block";
+        const textarea = document.getElementById("scenarioInput");
+        textarea.style.display = "block";
+        textarea.focus();
         document.getElementById("editBtn").style.display = "none";
     }
 
     function cancelEdit() {
-        document.getElementById("edit-form").style.display = "none";
+        document.getElementById("scenarioInput").style.display = "none";
         document.getElementById("view-box").style.display = "block";
         document.getElementById("editBtn").style.display = "inline-block";
     }
+
+    function submitScenario() {
+        const form = document.getElementById("edit-form");
+        const formData = new FormData(form);
+        const scenarioText = formData.get("scenarioText");
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to save scenario.");
+                }
+                return response.text();
+            })
+            .then(() => {
+                document.getElementById("view-box").textContent = scenarioText;
+                alert("Scenario saved successfully!");
+                cancelEdit();
+            })
+            .catch(error => {
+                alert("An error occurred while saving: " + error.message);
+            });
+    }
+
+    function publishScenario() {
+        const trendId = document.querySelector("input[name='trendId']").value;
+
+        fetch(`/api/scenario/publish/${trendId}`, {
+            method: "POST"
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to publish scenario.");
+                }
+                return response.text();
+            })
+            .then(() => {
+                window.location.href = "/api/scenario/published-scenarios";
+            })
+            .catch(error => {
+                alert("An error occurred while publishing: " + error.message);
+            });
+    }
+
+    document.getElementById("edit-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        submitScenario();
+    });
 </script>
 
 </body>
