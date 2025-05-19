@@ -2,20 +2,98 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Show Scenario</title>
+    <title>TUSAŞ - Show Scenario</title>
     <style>
-        body {
-            font-family: "Segoe UI", sans-serif;
-            padding: 2rem;
-            background-color: #f5f5f5;
+        * {
+            box-sizing: border-box;
         }
 
-        h1 {
-            color: #003366;
+        html, body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f5f5;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+        }
+
+        nav {
+            width: 220px;
+            background-color: #003366;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        nav img {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .user-info-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .user-info-box p {
+            margin: 4px 0;
+            color: #ffffff;
+        }
+
+        .user-info-box p strong {
+            color: #ffffcc;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            text-align: left;
+            transition: background 0.3s;
+        }
+
+        nav button:hover {
+            background-color: #004080;
+        }
+
+        .main-wrapper {
+            margin-left: 220px;
+            width: calc(100% - 220px);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 2rem auto;
             background-color: white;
             padding: 2rem;
@@ -32,18 +110,7 @@
             color: #003366;
         }
 
-        .scenario-box {
-            background-color: #e9f0fa;
-            padding: 1.5rem;
-            border-left: 6px solid #003366;
-            border-radius: 4px;
-            font-size: 1rem;
-            color: #333;
-            white-space: pre-line;
-            width: 100%;
-            border: none;
-        }
-
+        .scenario-box,
         textarea {
             width: 100%;
             background-color: #e9f0fa;
@@ -54,25 +121,29 @@
             color: #333;
             font-family: inherit;
             resize: vertical;
-            height: 300px;
+            white-space: pre-line;
             border: none;
         }
 
-        .btn {
+        textarea {
+            display: none;
+            height: 300px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
             margin-top: 1rem;
+        }
+
+        .btn {
             padding: 0.5rem 1rem;
             background-color: #003366;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
         }
 
         .btn-green {
@@ -82,31 +153,59 @@
 </head>
 <body>
 
-<div class="container">
-    <h1 th:text="'Scenario for: ' + ${trend.trendName}">Scenario Title</h1>
+<!-- Sidebar -->
+<nav>
+    <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
 
-    <div class="trend-info">
-        <p><strong>Description:</strong> <span th:text="${trend.definition}">Trend description goes here</span></p>
+    <div class="user-info-box">
+        <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
+        <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
+        <p>📚 <strong th:text="${userExpertise}">Uzmanlık</strong></p>
     </div>
 
-    <!-- Görüntüleme Kutusu -->
-    <div id="view-box" class="scenario-box" th:text="${scenarioText}"></div>
+    <th:block th:if="${userRole == 'MANAGER'}">
+        <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
+    </th:block>
+    <button onclick="window.location.href='/api/scenario/published-scenarios'">📄 Published Scenarios</button>
+    <button onclick="window.location.href='/trends'">Trend List</button>
 
-    <!-- Düzenleme Formu -->
-    <form id="edit-form" th:action="@{/api/scenario/save}" method="post">
-        <input type="hidden" name="trendId" th:value="${trend.id}" />
-        <textarea id="scenarioInput" name="scenarioText" th:text="${scenarioText}" style="display: none;"></textarea>
-    </form>
+    <div style="margin-top: auto;">
+        <button onclick="logout()" style="background-color: #cc0000; color: white;">🔓 Logout</button>
+    </div>
+</nav>
 
-    <!-- Butonlar -->
-    <div class="btn-group">
-        <button id="editBtn" class="btn" type="button" onclick="enableEdit()">Edit Scenario</button>
-        <button id="inlineSaveBtn" class="btn" type="button" onclick="submitScenario()">Save</button>
-        <button class="btn btn-green" type="button" onclick="publishScenario()">Publish</button>
+<!-- Main Content -->
+<div class="main-wrapper">
+    <header>
+        <h1>Publish Scenario</h1>
+    </header>
 
-        <form th:action="@{/trends}" method="get" style="display:inline;">
-            <button type="submit" class="btn">Back to All Trends</button>
+    <div class="container">
+        <h2 th:text="'Scenario for: ' + ${trend.trendName}">Scenario Title</h2>
+
+        <div class="trend-info">
+            <p><strong>Description:</strong> <span th:text="${trend.definition}">Trend description</span></p>
+        </div>
+
+        <!-- View Mode -->
+        <div id="view-box" class="scenario-box" th:text="${scenarioText}"></div>
+
+        <!-- Edit Form -->
+        <form id="edit-form" th:action="@{/api/scenario/save}" method="post">
+            <input type="hidden" name="trendId" th:value="${trend.id}" />
+            <textarea id="scenarioInput" name="scenarioText" th:text="${scenarioText}"></textarea>
         </form>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+            <button id="editBtn" class="btn" type="button" onclick="enableEdit()">Edit</button>
+            <button id="inlineSaveBtn" class="btn" type="button" onclick="submitScenario()">Save</button>
+
+            <form th:action="@{/trends}" method="get">
+                <button type="submit" class="btn">← Back</button>
+            </form>
+            <button class="btn btn-green" type="button" onclick="publishScenario()">Publish</button>
+        </div>
     </div>
 </div>
 
@@ -135,9 +234,7 @@
             body: formData
         })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to save scenario.");
-                }
+                if (!response.ok) throw new Error("Failed to save scenario.");
                 return response.text();
             })
             .then(() => {
@@ -146,7 +243,7 @@
                 cancelEdit();
             })
             .catch(error => {
-                alert("An error occurred while saving: " + error.message);
+                alert("Error saving scenario: " + error.message);
             });
     }
 
@@ -157,17 +254,19 @@
             method: "POST"
         })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to publish scenario.");
-                }
+                if (!response.ok) throw new Error("Failed to publish scenario.");
                 return response.text();
             })
             .then(() => {
                 window.location.href = "/api/scenario/published-scenarios";
             })
             .catch(error => {
-                alert("An error occurred while publishing: " + error.message);
+                alert("Error publishing scenario: " + error.message);
             });
+    }
+
+    function logout() {
+        window.location.href = "/logout";
     }
 
     document.getElementById("edit-form").addEventListener("submit", function (e) {
