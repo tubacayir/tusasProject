@@ -4,14 +4,90 @@
     <meta charset="UTF-8">
     <title>All Trends</title>
     <style>
-        body {
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
             font-family: "Segoe UI", sans-serif;
-            padding: 2rem;
             background-color: #f5f5f5;
         }
 
+        body {
+            display: flex;
+        }
+
+        nav {
+            width: 220px;
+            background-color: #003366;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        nav img {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .user-info-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .user-info-box p {
+            margin: 4px 0;
+            color: #ffffff;
+        }
+
+        .user-info-box p strong {
+            color: #ffffcc;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        nav button:hover {
+            background-color: #004080;
+        }
+
+        .main-wrapper {
+            margin-left: 220px;
+            padding: 2rem;
+            flex-grow: 1;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
         h1 {
-            color: #003366;
+            margin: 0;
         }
 
         input[type="text"] {
@@ -22,7 +98,7 @@
             border-radius: 4px;
         }
 
-        button {
+        button.search-btn {
             padding: 0.5rem 1rem;
             background-color: #003366;
             color: white;
@@ -34,13 +110,16 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 2rem;
             background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
 
         th, td {
             padding: 1rem;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #eee;
+            text-align: left;
         }
 
         th {
@@ -51,25 +130,76 @@
         tr:hover {
             background-color: #eef;
         }
+
+        .btn-scenario {
+            background-color: #006699;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.7rem;
+            border-radius: 4px;
+            cursor: pointer;
+
+            display: block;          /* Alt alta dizilmelerini sağlar */
+            width: 100px;
+            height: 40px;
+            margin-bottom: 0.5rem;   /* Butonlar arasında dikey boşluk */
+        }
+
+        .btn-scenario:hover {
+            background-color: #004d80;
+        }
+
+        .btn-scenario:last-child {
+            margin-bottom: 0;        /* Son butonun altına boşluk koyma */
+        }
+
+
     </style>
 </head>
 <body>
-<h1>All Trends</h1>
+<nav>
+    <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
 
-<input type="text" id="searchInput" placeholder="Find by trend name..."/>
-<button onclick="searchTrends()">Search</button>
+    <div class="user-info-box">
+        <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
+        <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
+        <p><strong th:text="${userExpertise}">Expertise</strong></p>
+    </div>
 
-<table id="trendsTable">
-    <thead>
-    <tr>
-        <th>Trend Name</th>
-        <th>Definition</th>
-        <th>Average Impact</th>
-        <th>Scenarios</th>
-    </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <p><strong>Mega Trends</strong></p>
+    <button onclick="alert('Defence')">Defence</button>
+    <button onclick="alert('Aviation')">Aviation</button>
+    <th:block th:if="${userRole == 'MANAGER'}">
+        <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
+    </th:block>
+    <button onclick="window.location.href='/api/scenario/published-scenarios'">📄 Published Scenarios</button>
+    <div style="margin-top: auto;">
+        <button onclick="logout()" style="background-color: #cc0000; color: white;">🔓 Logout</button>
+    </div>
+</nav>
+
+<div class="main-wrapper">
+    <header>
+        <h1>All Trends</h1>
+    </header>
+
+    <div>
+        <input type="text" id="searchInput" placeholder="Find by trend name..." />
+        <button class="search-btn" onclick="searchTrends()">Search</button>
+    </div>
+
+    <table id="trendsTable">
+        <thead>
+        <tr>
+            <th>Trend Name</th>
+            <th>Definition</th>
+            <th>Average Impact</th>
+            <th>Scenarios</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script>
     async function fetchTrends(query = "") {
@@ -88,12 +218,10 @@
                 <td>${trend.definition}</td>
                 <td>${trend.avgImpact}</td>
                 <td>
-                    <button onclick="createScenario(${trend.id})">Create Scenario</button>
-                    <button onclick="showScenario(${trend.id})">Show Scenario</button>
+                    <button class="btn-scenario" onclick="createScenario(${trend.id})">Create</button>
+                    <button class="btn-scenario" onclick="showScenario(${trend.id})">Show</button>
                 </td>
             `;
-
-
             tbody.appendChild(row);
         });
     }
@@ -130,20 +258,17 @@
     function showScenario(id) {
         window.location.href = `/api/scenario/scenarios/show/${id}`;
     }
-    // Sayfa yüklendiğinde hepsini getir
+
     renderTrends();
 
-    // Arama kutusuna yazarken anında filtreleme
     document.getElementById("searchInput").addEventListener("keyup", (e) => {
         const query = e.target.value;
         renderTrends(query);
 
-        // Eğer Enter tuşuna basılmışsa, ayrıca da çalıştırmak istersen burada işlem yapabilirsin
         if (e.key === "Enter") {
             searchTrends();
         }
     });
 </script>
-
 </body>
 </html>
