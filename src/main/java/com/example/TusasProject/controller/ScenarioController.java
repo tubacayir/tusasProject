@@ -64,7 +64,7 @@ public class ScenarioController {
                 Scenario:
                 """.formatted(trend.getTrendName(), driversText.toString().trim());
 
-        String flaskUrl = "https://strictly-magical-cattle.ngrok-free.app/generate";
+        String flaskUrl = "https://primary-skunk-allowing.ngrok-free.app/generate";
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
