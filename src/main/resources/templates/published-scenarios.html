@@ -34,14 +34,36 @@
 
 <body class="bg-lightbg dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans">
 
+<!-- Sidebar -->
+<aside class="w-[220px] bg-primary text-white min-h-screen fixed top-0 left-0 z-20 dark:bg-gray-800">
+    <div class="p-4">
+        <!-- Logo -->
+        <div class="mb-6">
+            <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" class="w-full" />
+        </div>
+
+        <!-- Kullanıcı Bilgi Kutusu -->
+        <div class="bg-white bg-opacity-10 p-3 rounded-lg mb-6 text-sm leading-relaxed">
+            <p class="text-white">👤 <strong class="text-yellow-100" th:text="${userName}">Ad Soyad</strong></p>
+            <p class="text-white">🔑 <strong class="text-yellow-100" th:text="${userRole}">Rol</strong></p>
+            <p class="text-white"><strong class="text-yellow-100" th:text="${userExpertise}">Expertise</strong></p>
+        </div>
+
+        <!-- Menü -->
+        <ul class="space-y-4">
+            <li><a href="/panel" class="hover">Technology Radar</a></li>
+            <li><a href="/api/scenario/published-scenarios" class="font-bold">Published Scenarios</a></li>
+        </ul>
+    </div>
+</aside>
+
 <!-- Header -->
-<header class="bg-primary dark:bg-gray-800 shadow fixed w-full top-0 z-10">
+<header class="bg-primary dark:bg-gray-800 shadow fixed w-full top-0 z-10 pl-[220px]">
     <div class="flex items-center justify-between px-6 py-4">
         <div class="flex items-center space-x-3">
-            <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" class="h-10" />
+            <!-- Logo kaldırıldı -->
         </div>
         <div class="space-x-4 flex items-center">
-            <!-- 🔍 Live Search -->
             <input id="searchInput" type="text" placeholder="Search trends or scenarios..."
                    class="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                    oninput="filterScenarios()" />
@@ -56,9 +78,22 @@
 <!-- Sidebar + Content -->
 <div class="flex pt-16">
 
-    <!-- Sidebar -->
-    <aside class="w-64 bg-primary text-white min-h-screen fixed dark:bg-gray-800">
-        <div class="p-6">
+    <aside class="w-[220px] bg-primary text-white min-h-screen fixed top-0 left-0 dark:bg-gray-800 pt-4">
+        <div class="p-4">
+
+            <!-- Logo (sol üstte) -->
+            <div class="mb-6">
+                <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" class="w-full" />
+            </div>
+
+            <!-- Kullanıcı Bilgi Kutusu -->
+            <div class="bg-white bg-opacity-10 p-3 rounded-lg mb-6 text-sm leading-relaxed">
+                <p class="text-white">👤 <strong class="text-yellow-100" th:text="${userName}">Ad Soyad</strong></p>
+                <p class="text-white">🔑 <strong class="text-yellow-100" th:text="${userRole}">Rol</strong></p>
+                <p class="text-white"><strong class="text-yellow-100" th:text="${userExpertise}">Expertise</strong></p>
+            </div>
+
+            <!-- Menü -->
             <ul class="space-y-4">
                 <li><a href="/panel" class="hover">Technology Radar</a></li>
                 <li><a href="/published-scenarios" class="font-bold">Published Scenarios</a></li>
@@ -69,68 +104,66 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-64 w-full p-8">
-        <h1 class="text-3xl font-bold mb-8 text-gray-800 dark:text-gray-100">Published Scenarios</h1>
+    <main class="ml-[220px] w-full p-10">
+        <h1 class="text-4xl font-extrabold mb-10 text-gray-900 dark:text-white tracking-tight">📚 Published Scenarios</h1>
 
-        <!-- Scenario Cards -->
-        <div id="scenarioContainer">
-            <div th:each="scenario : ${scenarios}" class="scenario-card mb-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2"
-                    th:text="${scenario.trend.trendName}">Scenario Title</h2>
-                <p class="text-gray-600 dark:text-gray-300 mb-4" th:text="${scenario.scenarioText}">Scenario description...</p>
+        <div id="scenarioContainer" class="space-y-10">
+            <div th:each="scenario : ${scenarios}" class="scenario-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 transition hover:shadow-xl">
+                <!-- Başlık -->
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-3" th:text="${scenario.trend.trendName}">Scenario Title</h2>
 
-                <!-- Date -->
-                <p class="text-sm text-gray-400 mb-6"
-                   th:text="${T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy').format(scenario.updatedAt)}">Date</p>
+                <!-- Açıklama -->
+                <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed" th:text="${scenario.scenarioText}">Scenario description...</p>
 
-                <!-- Comments -->
+                <!-- Güncellenme Tarihi -->
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 italic"
+                   th:text="${T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy').format(scenario.updatedAt)}">
+                    01 Jan 2024
+                </p>
+
+                <!-- Yorumlar -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Comments</h3>
-                    <div th:if="${scenario.comments.empty}" class="text-gray-500 italic">No comments yet.</div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">💬 Comments</h3>
 
-                    <div th:each="comment : ${scenario.comments}" class="mb-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                    <div th:if="${scenario.comments.empty}" class="text-gray-500 italic dark:text-gray-400">No comments yet.</div>
+
+                    <div th:each="comment : ${scenario.comments}" class="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                         <div class="flex items-center mb-2">
-                            <!-- Avatar -->
-                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2">
+                            <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm mr-3">
                                 <span th:text="${#strings.substring(comment.user.getFirstName()+comment.user.getLastName(), 0, 1)}">U</span>
                             </div>
-                            <p class="font-medium text-gray-800 dark:text-white" th:text="${comment.user.getFirstName()+comment.user.getLastName()}">Username</p>
+                            <span class="text-gray-800 dark:text-white font-medium" th:text="${comment.user.getFirstName()+comment.user.getLastName()}">Username</span>
                         </div>
-                        <p class="text-gray-600 dark:text-gray-200" th:text="${comment.text}">Comment content here.</p>
-                        <div class="flex items-center justify-between mt-2">
-                            <p class="text-sm text-gray-400"
-                               th:text="${T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy').format(comment.createdAt)}">
-                                01 Jan 2024
-                            </p>
-                            <button class="text-sm text-blue-600 dark:text-blue-400 hover:underline">👍 Like</button>
+                        <p class="text-gray-700 dark:text-gray-200 ml-12" th:text="${comment.text}">Comment content here.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-12"
+                           th:text="${T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy').format(comment.createdAt)}">
+                            01 Jan 2024
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Yorum Ekleme Formu -->
+                <form th:action="@{'/api/scenario/' + ${scenario.id} + '/comment'}" method="post" class="mt-6 space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-semibold">
+                            <span th:text="${#strings.substring(userName, 0, 1)}">U</span>
                         </div>
+                        <span class="font-medium text-gray-800 dark:text-white" th:text="${userName}">Current User</span>
                     </div>
 
-                    <!-- Comment Form -->
-                    <form th:action="@{'/api/scenario/' + ${scenario.id} + '/comment'}" method="post" class="mt-6 space-y-4">
-                        <!-- Avatar + User Name (From Session) -->
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-semibold">
-                                <span th:text="${#strings.substring(userName, 0, 1)}">U</span>
-                            </div>
-                            <span class="font-medium text-gray-800 dark:text-white" th:text="${userName}">Current User</span>
-                        </div>
+                    <textarea name="content" placeholder="Write your comment..." rows="3"
+                              class="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
+                              required></textarea>
 
-                        <!-- Comment Box -->
-                        <textarea name="content" placeholder="Write your comment..." rows="3"
-                                  class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md resize-none"
-                                  required></textarea>
-
-                        <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-semibold">
-                            Submit Comment
-                        </button>
-                    </form>
-                </div>
+                    <button type="submit"
+                            class="bg-primary hover:bg-secondary text-white px-5 py-2 rounded-md font-semibold transition-all">
+                        Submit Comment
+                    </button>
+                </form>
             </div>
         </div>
     </main>
+
 </div>
 
 <!-- 🔍 Live Search Script -->
