@@ -27,7 +27,7 @@
 
         .scenario-item {
             border-bottom: 1px solid #ddd;
-            padding: 1rem 0;
+            padding: 1.5rem 0;
         }
 
         .scenario-item:last-child {
@@ -38,7 +38,21 @@
             font-size: 1.3rem;
             font-weight: bold;
             color: #003366;
+            margin-bottom: 0.25rem;
+        }
+
+        .tags {
             margin-bottom: 0.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #e0ecff;
+            color: #003366;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 0.4rem;
         }
 
         .scenario-text {
@@ -54,7 +68,40 @@
         .scenario-meta {
             font-size: 0.85rem;
             color: #777;
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-form {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #fdfdfd;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .feedback-form textarea,
+        .feedback-form select {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .feedback-form button {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .feedback-form button:hover {
+            background-color: #002244;
         }
 
         .back-button {
@@ -74,6 +121,57 @@
         .btn:hover {
             background-color: #002244;
         }
+
+        .comment-section {
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 2px solid #ccc;
+        }
+
+        .comment {
+            background: #f1f5f9;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        .comment .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .comment .meta {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .reply-form {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .like-button {
+            border: none;
+            background: none;
+            color: #003366;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .like-button:hover {
+            color: #006747;
+        }
+
+        .like-icon {
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -86,8 +184,81 @@
     </div>
 
     <div th:each="scenario : ${scenarios}" class="scenario-item">
+
         <div class="trend-title" th:text="${scenario.trend.trendName}">Trend Name</div>
+
+        <div class="tags">
+            <span th:each="tag : ${scenario.tags}" class="tag" th:text="${tag}">AI</span>
+        </div>
+
         <div class="scenario-text" th:text="${scenario.scenarioText}">Scenario content goes here...</div>
+
+        <div class="scenario-meta" th:text="'Published on ' + ${#dates.format(scenario.createdAt, 'dd MMM yyyy')}">Date Info</div>
+
+        <!-- Like Button (EXPERT only) -->
+        <div th:if="${isExpert}">
+            <form th:action="@{/api/scenario/like}" method="post" style="display: inline;">
+                <input type="hidden" name="scenarioId" th:value="${scenario.id}" />
+                <button type="submit" class="like-button">
+                    <span class="like-icon">❤️</span> Like (<span th:text="${scenario.likes}">0</span>)
+                </button>
+            </form>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comment-section">
+            <h4 style="color:#555;">Comments</h4>
+
+            <div th:each="comment : ${scenario.comments}" class="comment">
+                <div>
+                    <img th:src="${comment.user.avatarUrl}" class="avatar" alt="avatar" />
+                    <strong th:text="${comment.user.name}">User Name</strong>
+                </div>
+                <div th:text="${comment.content}">Comment goes here...</div>
+                <div class="meta" th:text="${#dates.format(comment.createdAt, 'dd MMM yyyy HH:mm')}">Date</div>
+
+                <!-- Reply form (nested) -->
+                <div th:if="${isExpert}" class="reply-form">
+                    <form th:action="@{/api/scenario/reply}" method="post">
+                        <input type="hidden" name="scenarioId" th:value="${scenario.id}" />
+                        <input type="hidden" name="parentCommentId" th:value="${comment.id}" />
+                        <textarea name="comment" rows="2" placeholder="Reply..." required></textarea>
+                        <button type="submit">Reply</button>
+                    </form>
+                </div>
+
+                <!-- Child comments -->
+                <div th:each="reply : ${comment.replies}" class="comment" style="margin-left: 2rem;">
+                    <div>
+                        <img th:src="${reply.user.avatarUrl}" class="avatar" alt="avatar" />
+                        <strong th:text="${reply.user.name}">Reply User</strong>
+                    </div>
+                    <div th:text="${reply.content}">Reply content...</div>
+                    <div class="meta" th:text="${#dates.format(reply.createdAt, 'dd MMM yyyy HH:mm')}">Date</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Form (EXPERT only) -->
+        <div th:if="${isExpert}">
+            <form th:action="@{/api/scenario/feedback}" method="post" class="feedback-form">
+                <input type="hidden" name="scenarioId" th:value="${scenario.id}" />
+
+                <label for="score">Score:</label>
+                <select name="score" id="score">
+                    <option value="1">1 - Weak</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+
+                <label for="comment">Comment:</label>
+                <textarea name="comment" id="comment" rows="4" placeholder="Add your evaluation or suggestions..." required></textarea>
+
+                <button type="submit">Submit Feedback</button>
+            </form>
+        </div>
 
     </div>
 
