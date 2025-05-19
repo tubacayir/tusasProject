@@ -126,19 +126,16 @@
     <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
 
     <div class="user-info-box">
-        <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
-        <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
-        <p> <strong th:text="${userExpertise}">Expertise</strong></p>
+        <p>👤 <strong>Ad Soyad</strong></p>
+        <p>🔑 <strong>Rol</strong></p>
+        <p><strong>Expertise</strong></p>
     </div>
 
     <p><strong>Mega Trends</strong></p>
     <button onclick="alert('Defence')">Defence</button>
     <button onclick="alert('Aviation')">Aviation</button>
-    <th:block th:if="${userRole == 'MANAGER'}">
-        <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
-    </th:block>
-    <button onclick="window.location.href='/api/scenario/published-scenarios'">📄 Published Scenarios</button>
-    <!-- Logout button (added here) -->
+    <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
+
     <div style="margin-top: auto;">
         <button onclick="logout()" style="background-color: #cc0000; color: white;">🔓 Logout</button>
     </div>
@@ -154,18 +151,6 @@
 
 <!-- Tooltip -->
 <div class="tooltip" id="tooltip"></div>
-
-<input type="text" id="searchInput" placeholder="Search trends..." style="
-    position: fixed;
-    top: 15px;
-    right: 20px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    width: 250px;
-    font-size: 0.9rem;
-    z-index: 1000;
-">
 
 <script>
     let svg, container;
@@ -240,7 +225,7 @@
                 .enter()
                 .append("circle")
                 .attr("class", `trend-point ${dim.key}`)
-                .attr("r", 3.5)
+                .attr("r", 3)
                 .attr("fill", dim.color)
                 .attr("cx", (d, i) => radius * (d[dim.key] / 5) * Math.cos(i * angleSlice - Math.PI / 2))
                 .attr("cy", (d, i) => radius * (d[dim.key] / 5) * Math.sin(i * angleSlice - Math.PI / 2))
@@ -248,11 +233,7 @@
                 .on("mouseover", (event, d) => {
                     tooltip
                         .style("display", "block")
-                        .html(`
-                            <strong>${d.trend}</strong><br>
-                            ${d.definition}<br><br>
-                            <span style="color:${dim.color}">${dim.key.replace("avg", "")}</span>: ${d[dim.key].toFixed(2)}
-                        `);
+                        .html(`<strong>${d.trend}</strong><br>${d.definition}<br><br><span style="color:${dim.color}">${dim.key.replace("avg", "")}</span>: ${d[dim.key].toFixed(2)}`);
                 })
                 .on("mousemove", (event) => {
                     tooltip
@@ -294,6 +275,8 @@
 
         const segmentLabels = ["S", "T", "E1", "E2", "P"];
         const segmentColors = ["#d62728", "#9467bd", "#2ca02c", "#ff7f0e", "#1f77b4"];
+        const segmentAngle = (2 * Math.PI) / 5;
+
         const chartData = segmentLabels.map((label, index) => ({
             label: label,
             value: 1,
@@ -303,7 +286,7 @@
         const pie = d3.pie().sort(null).value(d => d.value);
         const arc = d3.arc().innerRadius(radius).outerRadius(radius + 8);
 
-        const pieChart = container.append("g");
+        const pieChart = container.append("g").attr("transform", `translate(0, 0)`);
 
         pieChart.selectAll("path")
             .data(pie(chartData))
@@ -331,63 +314,14 @@
 
         container.selectAll(".trend-point").style("opacity", 0.1);
         container.selectAll(`.${category.key}`).style("opacity", 1);
-
-        // Selected category adını güncelle
-        document.getElementById("selected-category").textContent = category.label;
     }
 
+    fetchChartData().then(renderRadar);
 
     function logout() {
-        fetch('/logout', {
-            method: 'POST',
-            credentials: 'include'
-        }).then(() => {
-            window.location.href = '/login';
-        }).catch(err => {
-            alert("Logout failed!");
-            console.error(err);
-        });
+        window.location.href = "/logout";
     }
-
-    function applySearchFilter(query, data) {
-        const lowerQuery = query.toLowerCase();
-
-        container.selectAll("circle.trend-point")
-            .attr("r", d => d.trend.toLowerCase().includes(lowerQuery) ? 12 : 6)
-            .attr("stroke", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "none")
-            .attr("stroke-width", d => d.trend.toLowerCase().includes(lowerQuery) ? 2 : 0);
-
-        container.selectAll("text.label")
-            .style("font-weight", d => d.trend.toLowerCase().includes(lowerQuery) ? "bold" : "normal")
-            .style("fill", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "#333");
-    }
-
-    async function initialize() {
-        const data = await fetchChartData();
-        await renderRadar(data);
-        document.getElementById("searchInput").addEventListener("input", (e) => {
-            const query = e.target.value;
-            applySearchFilter(query, data);
-        });
-    }
-
-    window.addEventListener("resize", initialize);
-    initialize();
 </script>
-
-<!-- sayfanın en sonuna, </body> etiketinden hemen önce ekle -->
-<div style="position: fixed; bottom: 20px; right: 20px; background: #fff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.15); font-family: sans-serif; font-size: 14px; z-index: 999;">
-    <strong>Legend:</strong>
-    <ul style="list-style: none; padding-left: 0; margin: 8px 0;">
-        <li><span style="display:inline-block;width:12px;height:12px;background:#d62728;margin-right:6px;border-radius:50%;"></span>Social</li>
-        <li><span style="display:inline-block;width:12px;height:12px;background:#9467bd;margin-right:6px;border-radius:50%;"></span>Technological</li>
-        <li><span style="display:inline-block;width:12px;height:12px;background:#2ca02c;margin-right:6px;border-radius:50%;"></span>Environmental</li>
-        <li><span style="display:inline-block;width:12px;height:12px;background:#ff7f0e;margin-right:6px;border-radius:50%;"></span>Political</li>
-        <li><span style="display:inline-block;width:12px;height:12px;background:#1f77b4;margin-right:6px;border-radius:50%;"></span>Economic</li>
-    </ul>
-    <div><strong>Selected category:</strong> <span id="selected-category">None</span></div>
-</div>
-
 
 </body>
 </html>

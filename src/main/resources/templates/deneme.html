@@ -2,119 +2,388 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>TUSAŞ - Technological Radar</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         html, body {
             margin: 0;
-            padding: 0;
             height: 100%;
             font-family: "Segoe UI", sans-serif;
-            background: #f5f5f5;
+            background-color: #f5f5f5;
         }
+
+        body {
+            display: flex;
+        }
+
+        nav {
+            width: 220px;
+            background-color: #003366;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        nav img {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .user-info-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .user-info-box p {
+            margin: 4px 0;
+            color: #ffffff;
+        }
+
+        .user-info-box p strong {
+            color: #ffffcc;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        nav button:hover {
+            background-color: #004080;
+        }
+
+        .main-wrapper {
+            margin-left: 220px;
+            width: calc(100% - 220px);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
         header {
             background-color: #003366;
             color: white;
-            padding: 0.5rem 1rem;
-            display: flex;
-            align-items: center;
-        }
-        header img {
-            height: 40px;
-            margin-right: 1rem;
-        }
-        header h1 {
-            font-size: 1.25rem;
-            margin: 0;
-        }
-        #chart-container {
-            width: 100%;
-            height: 600px;
-            background: white;
-            margin-top: 1rem;
             padding: 1rem;
-            box-sizing: border-box;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        #chart {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 51, 102, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            font-size: 0.9rem;
+            max-width: 300px;
+            z-index: 10;
+            display: none;
         }
     </style>
 </head>
 <body>
-<header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f6/TUSA%C5%9E_logo.svg" alt="TUSAŞ Logo" />
-    <h1>Technological Radar Deneme</h1>
-</header>
-<div id="chart-container"></div>
+
+<!-- Sidebar -->
+<nav>
+    <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
+
+    <div class="user-info-box">
+        <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
+        <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
+        <p> <strong th:text="${userExpertise}">Expertise</strong></p>
+    </div>
+
+    <p><strong>Mega Trends</strong></p>
+    <button onclick="alert('Defence')">Defence</button>
+    <button onclick="alert('Aviation')">Aviation</button>
+    <th:block th:if="${userRole == 'MANAGER'}">
+        <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
+    </th:block>
+
+    <!-- Logout button (added here) -->
+    <div style="margin-top: auto;">
+        <button onclick="logout()" style="background-color: #cc0000; color: white;">🔓 Logout</button>
+    </div>
+</nav>
+
+<!-- Main content -->
+<div class="main-wrapper">
+    <header>
+        <h1>Technological Radar</h1>
+    </header>
+    <div id="chart"></div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
 
 <script>
+    let svg, container;
+    const chartElement = document.getElementById("chart");
+    const tooltip = d3.select("#tooltip");
+
     async function fetchChartData() {
         const res = await fetch("/api/drivers/average-impacts");
         return res.ok ? res.json() : [];
     }
 
-    function renderRadarChart(data) {
-        const chart = echarts.init(document.getElementById("chart-container"));
+    function setupSVG(width, height) {
+        d3.select("#chart").select("svg").remove();
 
-        const indicators = data.map(item => ({
-            name: item.trend,
-            max: 5
-        }));
-        const values = data.map(item => item.averageImpact);
+        svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%");
+        const zoomGroup = svg.append("g");
 
-        const option = {
-            title: {
-                text: 'Technological Trends - Average Impact',
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'item'
-            },
-            radar: {
-                indicator: indicators,
-                radius: '70%',
-                name: {
-                    textStyle: {
-                        color: '#003366',
-                        fontSize: 12
-                    }
-                },
-                splitLine: {
-                    lineStyle: {
-                        color: '#ccc'
-                    }
-                },
-                axisLine: {
-                    lineStyle: {
-                        color: '#888'
-                    }
-                }
-            },
-            series: [{
-                type: 'radar',
-                data: [{
-                    value: values,
-                    name: 'Average Impact',
-                    areaStyle: {
-                        color: 'rgba(0,51,102,0.3)'
-                    },
-                    lineStyle: {
-                        color: '#003366'
-                    },
-                    symbol: 'circle',
-                    symbolSize: 6,
-                    itemStyle: {
-                        color: '#003366'
-                    }
-                }]
-            }]
-        };
+        svg.call(
+            d3.zoom()
+                .scaleExtent([0.5, 4])
+                .on("zoom", (event) => {
+                    zoomGroup.attr("transform", event.transform);
+                })
+        );
 
-        chart.setOption(option);
+        container = zoomGroup.append("g")
+            .attr("transform", translate(${width / 2}, ${height / 2}));
     }
 
-    (async () => {
+    async function renderRadar(data) {
+        const width = chartElement.clientWidth;
+        const height = chartElement.clientHeight;
+        const radius = Math.min(width, height) / 4;
+
+        setupSVG(width, height);
+        container.selectAll("*").remove();
+
+        const angleSlice = (2 * Math.PI) / data.length;
+
+        const dimensions = [
+            { key: "avgEconomicImpact", color: "#1f77b4" },
+            { key: "avgPoliticalImpact", color: "#ff7f0e" },
+            { key: "avgEnvironmentalImpact", color: "#2ca02c" },
+            { key: "avgSocialImpact", color: "#d62728" },
+            { key: "avgTechnologicalImpact", color: "#9467bd" }
+        ];
+
+        for (let i = 1; i <= 5; i++) {
+            container.append("circle")
+                .attr("r", (radius * i) / 5)
+                .style("fill", "none")
+                .style("stroke", "#ccc");
+        }
+
+        data.forEach((d, i) => {
+            const angle = i * angleSlice - Math.PI / 2;
+            const x = radius * Math.cos(angle);
+            const y = radius * Math.sin(angle);
+            container.append("line")
+                .attr("x1", 0).attr("y1", 0)
+                .attr("x2", x).attr("y2", y)
+                .style("stroke", "#aaa");
+        });
+
+        dimensions.forEach(dim => {
+            container.selectAll(`circle.trend-point-${dim.key}`)
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("class", `trend-point ${dim.key}`)
+                .attr("r", 3)
+                .attr("fill", dim.color)
+                .attr("cx", (d, i) => radius * (d[dim.key] / 5) * Math.cos(i * angleSlice - Math.PI / 2))
+                .attr("cy", (d, i) => radius * (d[dim.key] / 5) * Math.sin(i * angleSlice - Math.PI / 2))
+                .style("cursor", "pointer")
+                .on("mouseover", (event, d) => {
+                    tooltip
+                        .style("display", "block")
+                        .html(`
+                        <strong>${d.trend}</strong><br>
+                        ${d.definition}<br><br>
+                        <span style="color:${dim.color}">${dim.key.replace("avg", "")}</span>: ${d[dim.key].toFixed(2)}
+                    `);
+                })
+                .on("mousemove", (event) => {
+                    tooltip
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY + 10) + "px");
+                })
+                .on("mouseout", () => {
+                    tooltip.style("display", "none");
+                })
+                .on("click", (event, d) => {
+                    window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
+                });
+        });
+
+        container.selectAll("text.label")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("class", "label")
+            .attr("dy", "0.35em")
+            .attr("transform", (d, i) => {
+                const angle = angleSlice * i - Math.PI / 2;
+                const x = Math.cos(angle) * (radius + 10);
+                const y = Math.sin(angle) * (radius + 10);
+                const angleDeg = angle * 180 / Math.PI;
+                const rotate = angleDeg > 90 || angleDeg < -90 ? angleDeg + 180 : angleDeg;
+                return `translate(${x},${y}) rotate(${rotate})`;
+            })
+            .attr("text-anchor", (d, i) => {
+                const angle = angleSlice * i - Math.PI / 2;
+                const angleDeg = angle * 180 / Math.PI;
+                return angleDeg > 90 || angleDeg < -90 ? "end" : "start";
+            })
+            .style("cursor", "pointer")
+            .text(d => d.trend)
+            .on("click", (event, d) => {
+                window.location.href = `/drivers.html?trend=${encodeURIComponent(d.trend)}`;
+            });
+
+        // STEEP Segmentleri
+        const segmentLabels = ["S", "T", "E1", "E2", "P"];
+        const segmentColors = ["#d62728", "#9467bd", "#2ca02c", "#ff7f0e", "#1f77b4"];
+
+        const segmentAngle = (2 * Math.PI) / 5;
+        const labelRadius = radius;
+
+        const chartData = segmentLabels.map((label, index) => ({
+            label: label,
+            value: 1,
+            color: segmentColors[index]
+        }));
+
+        const pie = d3.pie().sort(null).value(d => d.value);
+
+        const arc = d3.arc()
+            .innerRadius(labelRadius)
+            .outerRadius(labelRadius + 8);
+
+        const pieChart = container.append("g")
+            .attr("transform", `translate(0, 0)`);
+
+        pieChart.selectAll("path")
+            .data(pie(chartData))
+            .enter()
+            .append("path")
+            .attr("d", arc)
+            .attr("fill", d => d.data.color)
+            .style("cursor", "pointer")
+            .on("click", (event, d) => {
+                filterImpactData(d.data.label, data);
+            });
+    }
+
+    function filterImpactData(label, data) {
+        const segmentMapping = {
+            "S": { key: "avgSocialImpact", label: "Social" },
+            "T": { key: "avgTechnologicalImpact", label: "Technological" },
+            "E1": { key: "avgEnvironmentalImpact", label: "Environmental" },
+            "E2": { key: "avgPoliticalImpact", label: "Political" },
+            "P": { key: "avgEconomicImpact", label: "Economic" }
+        };
+
+        const category = segmentMapping[label];
+        if (!category) return;
+
+        container.selectAll(".trend-point").style("opacity", 0.1);
+        container.selectAll(`.${category.key}`).style("opacity", 1);
+
+        document.getElementById("impactData").innerText =
+            `Selected Category : ${category.label}`;
+    }
+
+    fetchChartData().then(renderRadar);
+
+
+    async function initialize() {
         const data = await fetchChartData();
-        renderRadarChart(data.slice(0, 12)); // 12 trend gösterelim, fazla olursa yazılar üst üste gelir
-    })();
+        await renderRadar(data);
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+            const query = e.target.value;
+            applySearchFilter(query, data);
+        });
+    }
+
+    function applySearchFilter(query, data) {
+        const lowerQuery = query.toLowerCase();
+
+        container.selectAll("circle.trend-point")
+            .attr("r", d => d.trend.toLowerCase().includes(lowerQuery) ? 12 : 6)
+            .attr("stroke", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "none")
+            .attr("stroke-width", d => d.trend.toLowerCase().includes(lowerQuery) ? 2 : 0);
+
+        container.selectAll("text.label")
+            .style("font-weight", d => d.trend.toLowerCase().includes(lowerQuery) ? "bold" : "normal")
+            .style("fill", d => d.trend.toLowerCase().includes(lowerQuery) ? "#000" : "#333");
+    }
+
+    function logout() {
+        fetch('/logout', {
+            method: 'POST',
+            credentials: 'include'
+        }).then(() => {
+            window.location.href = '/login';
+        }).catch(err => {
+            alert("Logout failed!");
+            console.error(err);
+        });
+    }
+
+    window.addEventListener("resize", initialize);
+    initialize();
 </script>
+
+<input type="text" id="searchInput" placeholder="Search trends..." style="
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    width: 250px;
+    font-size: 0.9rem;
+    z-index: 1000;
+">
+
 </body>
 </html>
