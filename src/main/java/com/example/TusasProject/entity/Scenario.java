@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "scenarios")
@@ -23,7 +25,8 @@ public class Scenario {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
+    @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
 
     private String scenarioText;
 

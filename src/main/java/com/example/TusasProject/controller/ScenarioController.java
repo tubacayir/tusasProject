@@ -1,14 +1,8 @@
 package com.example.TusasProject.controller;
 
 import com.example.TusasProject.dto.ScenarioGenerationRequest;
-import com.example.TusasProject.entity.Driver;
-import com.example.TusasProject.entity.Scenario;
-import com.example.TusasProject.entity.Trend;
-import com.example.TusasProject.entity.User;
-import com.example.TusasProject.repository.DriverRepository;
-import com.example.TusasProject.repository.ScenarioRepository;
-import com.example.TusasProject.repository.TrendRepository;
-import com.example.TusasProject.repository.UserRepository;
+import com.example.TusasProject.entity.*;
+import com.example.TusasProject.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +34,9 @@ public class ScenarioController {
     private ScenarioRepository scenarioRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
 
     @PostMapping("/generate")
@@ -148,20 +147,41 @@ public class ScenarioController {
             scenario.setIsPublished(true);
             scenarioRepository.save(scenario);
             return ResponseEntity.ok().build();
-        }
-        else {
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Scenario not found for this trend");
         }
     }
 
     @GetMapping("/published-scenarios")
-    public String getPublishedScenarios(Model model) {
-            List<Scenario> publishedScenarios = scenarioRepository.findByIsPublishedTrueOrderByUpdatedAtDesc();
+    public String getPublishedScenarios(Model model, Principal principal) {
+        List<Scenario> publishedScenarios = scenarioRepository.findByIsPublishedTrueOrderByUpdatedAtDesc();
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
 
+        if (user != null) {
+            model.addAttribute("userName", user.getFirstName() + " " + user.getLastName());
+            model.addAttribute("userRole", user.getRole().getName());
+            model.addAttribute("userExpertise", user.getExpertise());
+        }
         model.addAttribute("scenarios", publishedScenarios);
 
-        // published-scenarios.html Thymeleaf şablonuna yönlendir
         return "published-scenarios";
 
     }
+
+    @PostMapping("/{id}/comment")
+    public String addComment(@PathVariable Long id,
+                             @RequestParam String content,
+                             Principal principal) {
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        Scenario scenario = scenarioRepository.findById(id).orElseThrow();
+        Comment comment = new Comment();
+        comment.setText(content);
+        comment.setUser(user);
+        comment.setScenario(scenario);
+        comment.setCreatedAt(LocalDateTime.now());
+        commentRepository.save(comment);
+
+        return "redirect:/published-scenarios";
+    }
+
 }
