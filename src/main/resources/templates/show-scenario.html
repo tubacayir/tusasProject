@@ -93,7 +93,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 2rem auto;
             background-color: white;
             padding: 2rem;
@@ -110,24 +110,42 @@
             color: #003366;
         }
 
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background-color: #e9f0fa;
+            border-left: 6px solid #003366;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .scenario-card h3 {
+            margin-top: 0;
+            color: #003366;
+        }
+
         .scenario-box,
         textarea {
             width: 100%;
             background-color: #e9f0fa;
-            padding: 1.5rem;
-            border-left: 6px solid #003366;
-            border-radius: 4px;
+            padding: 1rem;
             font-size: 1rem;
             color: #333;
             font-family: inherit;
             resize: vertical;
             white-space: pre-line;
             border: none;
+            border-radius: 4px;
         }
 
         textarea {
             display: none;
-            height: 300px;
+            height: 200px;
         }
 
         .btn-group {
@@ -163,7 +181,6 @@
         <p>💼 <strong th:text="${userExpertise}">Expertise</strong></p>
     </div>
 
-
     <th:block th:if="${userRole == 'MANAGER'}">
         <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
     </th:block>
@@ -188,45 +205,86 @@
             <p><strong>Description:</strong> <span th:text="${trend.definition}">Trend description</span></p>
         </div>
 
-        <!-- View Mode -->
-        <div id="view-box" class="scenario-box" th:text="${scenarioText}"></div>
+        <!-- 2x2 Scenario Grid -->
+        <div class="scenario-grid">
+            <div class="scenario-card" data-type="growth">
+                <h3>🌱 Growth</h3>
+                <div class="scenario-box" id="view-growth" th:text="${scenarios.growth}"></div>
+                <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
+                    <input type="hidden" name="trendId" th:value="${trend.id}" />
+                    <input type="hidden" name="type" value="growth" />
+                    <textarea name="scenarioText" id="edit-growth" th:text="${scenarios.growth}"></textarea>
+                </form>
+                <div class="btn-group">
+                    <button class="btn" onclick="enableEdit('growth')">Edit</button>
+                    <button class="btn" onclick="submitScenario('growth')">Save</button>
+                    <button class="btn btn-green" onclick="publishScenario('growth')">Publish</button>
+                </div>
+            </div>
 
-        <!-- Edit Form -->
-        <form id="edit-form" th:action="@{/api/scenario/save}" method="post">
-            <input type="hidden" name="trendId" th:value="${trend.id}" />
-            <textarea id="scenarioInput" name="scenarioText" th:text="${scenarioText}"></textarea>
-        </form>
+            <div class="scenario-card" data-type="collapse">
+                <h3>💥 Collapse</h3>
+                <div class="scenario-box" id="view-collapse" th:text="${scenarios.collapse}"></div>
+                <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
+                    <input type="hidden" name="trendId" th:value="${trend.id}" />
+                    <input type="hidden" name="type" value="collapse" />
+                    <textarea name="scenarioText" id="edit-collapse" th:text="${scenarios.collapse}"></textarea>
+                </form>
+                <div class="btn-group">
+                    <button class="btn" onclick="enableEdit('collapse')">Edit</button>
+                    <button class="btn" onclick="submitScenario('collapse')">Save</button>
+                    <button class="btn btn-green" onclick="publishScenario('collapse')">Publish</button>
+                </div>
+            </div>
 
-        <!-- Buttons -->
-        <div class="btn-group">
-            <button id="editBtn" class="btn" type="button" onclick="enableEdit()">Edit</button>
-            <button id="inlineSaveBtn" class="btn" type="button" onclick="submitScenario()">Save</button>
+            <div class="scenario-card" data-type="transformative">
+                <h3>🔄 Transformative</h3>
+                <div class="scenario-box" id="view-transformative" th:text="${scenarios.transformative}"></div>
+                <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
+                    <input type="hidden" name="trendId" th:value="${trend.id}" />
+                    <input type="hidden" name="type" value="transformative" />
+                    <textarea name="scenarioText" id="edit-transformative" th:text="${scenarios.transformative}"></textarea>
+                </form>
+                <div class="btn-group">
+                    <button class="btn" onclick="enableEdit('transformative')">Edit</button>
+                    <button class="btn" onclick="submitScenario('transformative')">Save</button>
+                    <button class="btn btn-green" onclick="publishScenario('transformative')">Publish</button>
+                </div>
+            </div>
 
-            <form th:action="@{/trends}" method="get">
-                <button type="submit" class="btn">← Back</button>
-            </form>
-            <button class="btn btn-green" type="button" onclick="publishScenario()">Publish</button>
+            <div class="scenario-card" data-type="discipline">
+                <h3>📘 Discipline</h3>
+                <div class="scenario-box" id="view-discipline" th:text="${scenarios.discipline}"></div>
+                <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
+                    <input type="hidden" name="trendId" th:value="${trend.id}" />
+                    <input type="hidden" name="type" value="discipline" />
+                    <textarea name="scenarioText" id="edit-discipline" th:text="${scenarios.discipline}"></textarea>
+                </form>
+                <div class="btn-group">
+                    <button class="btn" onclick="enableEdit('discipline')">Edit</button>
+                    <button class="btn" onclick="submitScenario('discipline')">Save</button>
+                    <button class="btn btn-green" onclick="publishScenario('discipline')">Publish</button>
+                </div>
+            </div>
         </div>
+
+        <!-- Back Button -->
+        <form th:action="@{/trends}" method="get" style="margin-top: 2rem;">
+            <button type="submit" class="btn">← Back</button>
+        </form>
     </div>
 </div>
 
 <script>
-    function enableEdit() {
-        document.getElementById("view-box").style.display = "none";
-        const textarea = document.getElementById("scenarioInput");
+    function enableEdit(type) {
+        document.getElementById(`view-${type}`).style.display = "none";
+        const textarea = document.getElementById(`edit-${type}`);
         textarea.style.display = "block";
         textarea.focus();
-        document.getElementById("editBtn").style.display = "none";
     }
 
-    function cancelEdit() {
-        document.getElementById("scenarioInput").style.display = "none";
-        document.getElementById("view-box").style.display = "block";
-        document.getElementById("editBtn").style.display = "inline-block";
-    }
-
-    function submitScenario() {
-        const form = document.getElementById("edit-form");
+    function submitScenario(type) {
+        const form = document.querySelector(`.scenario-card[data-type="${type}"] form`);
         const formData = new FormData(form);
         const scenarioText = formData.get("scenarioText");
 
@@ -239,19 +297,20 @@
                 return response.text();
             })
             .then(() => {
-                document.getElementById("view-box").textContent = scenarioText;
+                document.getElementById(`view-${type}`).textContent = scenarioText;
+                document.getElementById(`view-${type}`).style.display = "block";
+                document.getElementById(`edit-${type}`).style.display = "none";
                 alert("Scenario saved successfully!");
-                cancelEdit();
             })
             .catch(error => {
                 alert("Error saving scenario: " + error.message);
             });
     }
 
-    function publishScenario() {
+    function publishScenario(type) {
         const trendId = document.querySelector("input[name='trendId']").value;
 
-        fetch(`/api/scenario/publish/${trendId}`, {
+        fetch(`/api/scenario/publish/${trendId}?type=${type}`, {
             method: "POST"
         })
             .then(response => {
@@ -259,6 +318,7 @@
                 return response.text();
             })
             .then(() => {
+                alert("Scenario published successfully!");
                 window.location.href = "/api/scenario/published-scenarios";
             })
             .catch(error => {
@@ -269,11 +329,6 @@
     function logout() {
         window.location.href = "/logout";
     }
-
-    document.getElementById("edit-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        submitScenario();
-    });
 </script>
 
 </body>

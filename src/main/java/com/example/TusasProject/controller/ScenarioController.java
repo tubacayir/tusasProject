@@ -2,6 +2,7 @@ package com.example.TusasProject.controller;
 
 import com.example.TusasProject.dto.ScenarioGenerationRequest;
 import com.example.TusasProject.entity.*;
+import com.example.TusasProject.entity.enums.ScenarioType;
 import com.example.TusasProject.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -12,13 +13,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import com.example.TusasProject.entity.Driver;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/api/scenario")
@@ -38,56 +40,186 @@ public class ScenarioController {
     @Autowired
     private CommentRepository commentRepository;
 
-
     @PostMapping("/generate")
     @PreAuthorize("hasRole('MANAGER')")
     public String generateScenario(@RequestBody ScenarioGenerationRequest request, Model model) {
         Trend trend = trendRepository.getReferenceById(request.getTrendId());
-        List<Driver> drivers = driverRepository.findByTrendId(request.getTrendId());
+        List<Driver> allDrivers = new ArrayList<>(driverRepository.findByTrendId(request.getTrendId()));
 
-        // Build key driver text (just first 2)
-        StringBuilder driversText = new StringBuilder();
-        for (int i = 0; i < Math.min(2, drivers.size()); i++) {
-            driversText.append((i + 1)).append(". ").append(drivers.get(i).getDriverName()).append("\n");
-        }
+        // Puanla ve sırala
+        allDrivers.sort((o1, o2) -> {
+            float impact1 = o1.getImpact() != null ? o1.getImpact() : 0f;
+            float uncertainty1 = o1.getUncertainty() != null ? o1.getUncertainty() : 0f;
+            float impact2 = o2.getImpact() != null ? o2.getImpact() : 0f;
+            float uncertainty2 = o2.getUncertainty() != null ? o2.getUncertainty() : 0f;
 
-        String prompt = """
-                Write a well-structured and coherent scenario in a narrative style (not in bullet points) based on the trend and key drivers below. 
-                Start with "Scenario:" and follow a natural flow. Do not include explanations or extra details outside the core theme. 
-                Keep it focused and insightful.
+            double score1 = (impact1 + uncertainty1) / 2.0;
+            double score2 = (impact2 + uncertainty2) / 2.0;
 
-                Trend: %s
+            return Double.compare(score2, score1); // yüksek skor önce
+        });
 
-                Key Drivers:
-                %s
+        // Kullanılmış driver'ları takip et
+        Set<Long> usedDriverIds = new HashSet<>();
 
-                Scenario:
-                """.formatted(trend.getTrendName(), driversText.toString().trim());
+        // Growth: En yüksek skorlu 2 driver
+        List<Driver> growthDrivers = allDrivers.stream()
+                .filter(d -> !usedDriverIds.contains(d.getId()))
+                .limit(2)
+                .peek(d -> usedDriverIds.add(d.getId()))
+                .collect(Collectors.toList());
 
+        // Collapse: En düşük skorlu 2 driver + negatif polarity driver'lardan kalan ilk 2
+        List<Driver> collapseDrivers = allDrivers.stream()
+                .filter(d -> !usedDriverIds.contains(d.getId()))
+                .sorted((d1, d2) -> {
+                    float impact1 = d1.getImpact() != null ? d1.getImpact() : 0f;
+                    float uncertainty1 = d1.getUncertainty() != null ? d1.getUncertainty() : 0f;
+                    float impact2 = d2.getImpact() != null ? d2.getImpact() : 0f;
+                    float uncertainty2 = d2.getUncertainty() != null ? d2.getUncertainty() : 0f;
+
+                    double score1 = (impact1 + uncertainty1) / 2.0;
+                    double score2 = (impact2 + uncertainty2) / 2.0;
+                    return Double.compare(score1, score2); // düşük skorlular önce
+                })
+                .filter(d -> d.getPolarity() != null && d.getPolarity() == -1 || true)
+                .limit(2)
+                .peek(d -> usedDriverIds.add(d.getId()))
+                .collect(Collectors.toList());
+
+        // Discipline: yüksek etki, düşük belirsizlik
+        List<Driver> disciplineDrivers = allDrivers.stream()
+                .filter(d -> !usedDriverIds.contains(d.getId()))
+                .filter(d -> {
+                    float impact = d.getImpact() != null ? d.getImpact() : 0f;
+                    float uncertainty = d.getUncertainty() != null ? d.getUncertainty() : 0f;
+                    return impact >= 4.0 && uncertainty <= 2.0;
+                })
+                .sorted((d1, d2) -> {
+                    float score1 = d1.getImpact() - d1.getUncertainty();
+                    float score2 = d2.getImpact() - d2.getUncertainty();
+                    return Float.compare(score2, score1);
+                })
+                .limit(2)
+                .peek(d -> usedDriverIds.add(d.getId()))
+                .collect(Collectors.toList());
+
+        // Transformative: düşük etki, yüksek belirsizlik
+        List<Driver> transformativeDrivers = allDrivers.stream()
+                .filter(d -> !usedDriverIds.contains(d.getId()))
+                .filter(d -> {
+                    float impact = d.getImpact() != null ? d.getImpact() : 0f;
+                    float uncertainty = d.getUncertainty() != null ? d.getUncertainty() : 0f;
+                    return impact <= 2.0 && uncertainty >= 4.0;
+                })
+                .sorted((d1, d2) -> {
+                    float score1 = d1.getUncertainty() - d1.getImpact();
+                    float score2 = d2.getUncertainty() - d2.getImpact();
+                    return Float.compare(score2, score1);
+                })
+                .limit(2)
+                .peek(d -> usedDriverIds.add(d.getId()))
+                .collect(Collectors.toList());
+
+
+        // Senaryo tiplerine göre eşleştir
+        Map<String, List<Driver>> scenarioDriversMap = Map.of(
+                "growth", growthDrivers,
+                "collapse", collapseDrivers,
+                "discipline", disciplineDrivers,
+                "transformative", transformativeDrivers
+        );
+
+        // Prompt oluşturucu fonksiyon
+        Function<String, String> getPromptTemplate = scenarioType -> switch (scenarioType) {
+            case "growth" -> """
+                    Write a forward-looking, optimistic scenario titled 'Growth' based on the trend and the key drivers listed below.
+                    Highlight opportunities, technological advances, and positive developments.
+                                
+                    Trend: %s
+
+                    Key Drivers:
+                    %s
+
+                    Scenario:
+                    """;
+            case "collapse" -> """
+                    Write a critical, cautionary scenario titled 'Collapse' that explores risks, system breakdowns, or negative consequences driven by the factors below.
+
+                    Trend: %s
+
+                    Key Drivers:
+                    %s
+
+                    Scenario:
+                    """;
+            case "discipline" -> """
+                    Write a disciplined and stable scenario titled 'Discipline' emphasizing strong governance, strategic planning, and risk mitigation.
+
+                    Trend: %s
+
+                    Key Drivers:
+                    %s
+
+                    Scenario:
+                    """;
+            case "transformative" -> """
+                    Write a bold, innovative scenario titled 'Transformative' that envisions radical change and disruption sparked by the drivers below.
+
+                    Trend: %s
+
+                    Key Drivers:
+                    %s
+
+                    Scenario:
+                    """;
+            default -> "";
+        };
+
+        // Flask API çağrısı
         String flaskUrl = "https://primary-skunk-allowing.ngrok-free.app/generate";
-
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, String> payload = new HashMap<>();
-        payload.put("prompt", prompt);
+        Map<String, String> generatedScenarios = new LinkedHashMap<>();
 
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(payload, headers);
+        for (Map.Entry<String, List<Driver>> entry : scenarioDriversMap.entrySet()) {
+            String scenarioType = entry.getKey();
+            List<Driver> scenarioDrivers = entry.getValue();
 
-        try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
-            String scenario = (String) response.getBody().get("response");
+            if (scenarioDrivers.isEmpty()) {
+                generatedScenarios.put(scenarioType, "Yeterli sayıda uygun driver bulunamadı.");
+                continue;
+            }
 
-            model.addAttribute("trend", trend);
-            model.addAttribute("scenarioText", scenario);  // Just one scenario text
+            // Driver metni
+            String driversText = IntStream.range(0, scenarioDrivers.size())
+                    .mapToObj(i -> (i + 1) + ". " + scenarioDrivers.get(i).getDriverName())
+                    .collect(Collectors.joining("\n"));
 
-            return "show-scenario"; // This now uses the updated HTML you translated
-        } catch (Exception e) {
-            model.addAttribute("error", "An error occurred while generating the scenario: " + e.getMessage());
-            return "error";
+            // Prompt oluştur
+            String promptTemplate = getPromptTemplate.apply(scenarioType);
+            String prompt = String.format(promptTemplate, trend.getTrendName(), driversText);
+
+            // Flask API'ye gönder
+            Map<String, String> payload = Map.of("prompt", prompt);
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(payload, headers);
+
+            try {
+                ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
+                String scenario = (String) response.getBody().get("response");
+                generatedScenarios.put(scenarioType, scenario);
+            } catch (Exception e) {
+                generatedScenarios.put(scenarioType, "API Hatası: " + e.getMessage());
+            }
         }
+
+        model.addAttribute("trend", trend);
+        model.addAttribute("scenarios", generatedScenarios);
+        return "show-scenario";
     }
+
 
     @GetMapping("/scenarios/create/{trendId}")
     public String createScenario(@PathVariable Long trendId, Model model) {
@@ -97,11 +229,18 @@ public class ScenarioController {
     }
 
     @GetMapping("/scenarios/show/{trendId}")
-    public String showScenario(@PathVariable Long trendId, Model model) {
+    public String showScenario(@PathVariable Long trendId, Model model, Principal principal) {
+
         Trend trend = trendRepository.getReferenceById(trendId);
         model.addAttribute("trend", trend);
         Scenario scenario = scenarioRepository.findByTrendId(trendId);
         model.addAttribute("scenarioText", scenario != null ? scenario.getScenarioText() : null);
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user != null) {
+            model.addAttribute("userName", user.getFirstName() + " " + user.getLastName());
+            model.addAttribute("userRole", user.getRole().getName());
+            model.addAttribute("userExpertise", user.getExpertise());
+        }
         return "show-scenario";
     }
 
@@ -181,7 +320,7 @@ public class ScenarioController {
         comment.setCreatedAt(LocalDateTime.now());
         commentRepository.save(comment);
 
-        return "redirect:/published-scenarios";
+        return "redirect:/api/scenario/published-scenarios";
     }
 
 }
