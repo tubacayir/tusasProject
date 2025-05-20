@@ -158,10 +158,11 @@
     <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" />
 
     <div class="user-info-box">
-        <p>👤 <strong th:text="${userName}">Ad Soyad</strong></p>
-        <p>🔑 <strong th:text="${userRole}">Rol</strong></p>
-        <p>📚 <strong th:text="${userExpertise}">Uzmanlık</strong></p>
+        <p>👤 <strong th:text="${userName}">First Name Last Name</strong></p>
+        <p>🔑 <strong th:text="${userRole}">Role</strong></p>
+        <p>💼 <strong th:text="${userExpertise}">Expertise</strong></p>
     </div>
+
 
     <th:block th:if="${userRole == 'MANAGER'}">
         <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
@@ -177,7 +178,7 @@
 <!-- Main Content -->
 <div class="main-wrapper">
     <header>
-        <h1>Publish Scenario</h1>
+        <h1>Show Scenario</h1>
     </header>
 
     <div class="container">

@@ -8,8 +8,10 @@ import java.util.Optional;
 
 public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
     Scenario findByTrendId(Long trendId);
-    List<Scenario> findByIsPublishedTrueOrderByUpdatedAtDesc();
 
+    List<Scenario> findByIsPublishedTrueOrderByUpdatedAtDesc();
+    // Belirli bir trend ve tür için senaryoyu getir (tek bir tane)
+    List<Scenario> findAllByTrendId(Long trendId);
 
 
 }

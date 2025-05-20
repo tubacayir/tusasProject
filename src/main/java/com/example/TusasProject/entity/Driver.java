@@ -6,7 +6,8 @@ import lombok.*;
 
 @Entity
 @Table(name = "drivers")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Driver extends DriverRatingListDTO {
