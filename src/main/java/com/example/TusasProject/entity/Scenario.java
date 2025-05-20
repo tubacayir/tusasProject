@@ -30,6 +30,8 @@ public class Scenario {
 
     private String scenarioText;
 
+    private String scenarioType;
+
     private Boolean isPublished;
 
     private LocalDateTime createdAt;

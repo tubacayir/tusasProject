@@ -209,11 +209,11 @@
         <div class="scenario-grid">
             <div class="scenario-card" data-type="growth">
                 <h3>🌱 Growth</h3>
-                <div class="scenario-box" id="view-growth" th:text="${scenarios.growth}"></div>
+                <div class="scenario-box" id="view-growth" th:text="${scenarios.growth} ?: ''"></div>
                 <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
                     <input type="hidden" name="trendId" th:value="${trend.id}" />
                     <input type="hidden" name="type" value="growth" />
-                    <textarea name="scenarioText" id="edit-growth" th:text="${scenarios.growth}"></textarea>
+                    <textarea name="scenarioText" id="edit-growth" th:text="${scenarios.growth} ?: ''"></textarea>
                 </form>
                 <div class="btn-group">
                     <button class="btn" onclick="enableEdit('growth')">Edit</button>
@@ -224,11 +224,11 @@
 
             <div class="scenario-card" data-type="collapse">
                 <h3>💥 Collapse</h3>
-                <div class="scenario-box" id="view-collapse" th:text="${scenarios.collapse}"></div>
+                <div class="scenario-box" id="view-collapse" th:text="${scenarios.collapse} ?: ''"></div>
                 <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
                     <input type="hidden" name="trendId" th:value="${trend.id}" />
                     <input type="hidden" name="type" value="collapse" />
-                    <textarea name="scenarioText" id="edit-collapse" th:text="${scenarios.collapse}"></textarea>
+                    <textarea name="scenarioText" id="edit-collapse" th:text="${scenarios.collapse} ?: ''"></textarea>
                 </form>
                 <div class="btn-group">
                     <button class="btn" onclick="enableEdit('collapse')">Edit</button>
@@ -239,11 +239,11 @@
 
             <div class="scenario-card" data-type="transformative">
                 <h3>🔄 Transformative</h3>
-                <div class="scenario-box" id="view-transformative" th:text="${scenarios.transformative}"></div>
+                <div class="scenario-box" id="view-transformative" th:text="${scenarios.transformative} ?: ''"></div>
                 <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
                     <input type="hidden" name="trendId" th:value="${trend.id}" />
                     <input type="hidden" name="type" value="transformative" />
-                    <textarea name="scenarioText" id="edit-transformative" th:text="${scenarios.transformative}"></textarea>
+                    <textarea name="scenarioText" id="edit-transformative" th:text="${scenarios.transformative} ?: ''"></textarea>
                 </form>
                 <div class="btn-group">
                     <button class="btn" onclick="enableEdit('transformative')">Edit</button>
@@ -254,11 +254,11 @@
 
             <div class="scenario-card" data-type="discipline">
                 <h3>📘 Discipline</h3>
-                <div class="scenario-box" id="view-discipline" th:text="${scenarios.discipline}"></div>
+                <div class="scenario-box" id="view-discipline" th:text="${scenarios.discipline} ?: ''"></div>
                 <form class="edit-form" th:action="@{/api/scenario/save}" method="post">
                     <input type="hidden" name="trendId" th:value="${trend.id}" />
                     <input type="hidden" name="type" value="discipline" />
-                    <textarea name="scenarioText" id="edit-discipline" th:text="${scenarios.discipline}"></textarea>
+                    <textarea name="scenarioText" id="edit-discipline" th:text="${scenarios.discipline} ?: ''"></textarea>
                 </form>
                 <div class="btn-group">
                     <button class="btn" onclick="enableEdit('discipline')">Edit</button>

@@ -2,7 +2,6 @@ package com.example.TusasProject.controller;
 
 import com.example.TusasProject.dto.ScenarioGenerationRequest;
 import com.example.TusasProject.entity.*;
-import com.example.TusasProject.entity.enums.ScenarioType;
 import com.example.TusasProject.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import com.example.TusasProject.entity.Driver;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -214,7 +212,22 @@ public class ScenarioController {
                 generatedScenarios.put(scenarioType, "API Hatası: " + e.getMessage());
             }
         }
-
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Optional<User> user = userRepository.findByEmail(email); // kullanıcıyı al
+        Scenario scenario = scenarioRepository.findByTrendId(trend.getId());
+        if (scenario != null) {
+            scenarioRepository.deleteById(scenario.getId());
+        }
+        saveScenarioDB(generatedScenarios.get("growth"), trend, user, "growth");
+        saveScenarioDB(generatedScenarios.get("collapse"), trend, user, "collapse");
+        saveScenarioDB(generatedScenarios.get("transformative"), trend, user, "transformative");
+        saveScenarioDB(generatedScenarios.get("discipline"), trend, user, "discipline");
+        if (user.isPresent()) {
+            model.addAttribute("userName", user.get().getFirstName() + " " + user.get().getLastName());
+            model.addAttribute("userRole", user.get().getRole().getName());
+            model.addAttribute("userExpertise", user.get().getExpertise());
+        }
         model.addAttribute("trend", trend);
         model.addAttribute("scenarios", generatedScenarios);
         return "show-scenario";
@@ -232,56 +245,69 @@ public class ScenarioController {
     public String showScenario(@PathVariable Long trendId, Model model, Principal principal) {
 
         Trend trend = trendRepository.getReferenceById(trendId);
+        Map<String, String> generatedScenarios = new LinkedHashMap<>();
         model.addAttribute("trend", trend);
-        Scenario scenario = scenarioRepository.findByTrendId(trendId);
-        model.addAttribute("scenarioText", scenario != null ? scenario.getScenarioText() : null);
+        List<Scenario> scenarioList = scenarioRepository.findAllByTrendId(trendId);
+        scenarioList.forEach(scenario1 -> generatedScenarios.put(scenario1.getScenarioType(), scenario1.getScenarioText()));
+
         User user = userRepository.findByEmail(principal.getName()).orElse(null);
         if (user != null) {
             model.addAttribute("userName", user.getFirstName() + " " + user.getLastName());
             model.addAttribute("userRole", user.getRole().getName());
             model.addAttribute("userExpertise", user.getExpertise());
         }
+        if (generatedScenarios.keySet().isEmpty()) {
+            generatedScenarios.put("growth", "Scenario not generated yet!");
+            generatedScenarios.put("collapse", "Scenario not generated yet!");
+            generatedScenarios.put("transformative", "Scenario not generated yet!");
+            generatedScenarios.put("discipline", "Scenario not generated yet!");
+        }
+        model.addAttribute("scenarios", generatedScenarios);
+        model.addAttribute("trend", trend);
         return "show-scenario";
     }
 
     @PostMapping("/save")
     @PreAuthorize("hasRole('MANAGER')")
-    public String saveScenario(@RequestParam Long trendId, @RequestParam String scenarioText, Model model) {
+    public String saveScenario(@RequestParam Long trendId, @RequestParam String scenarioText,
+                               @RequestParam String type,
+                               Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         Optional<User> user = userRepository.findByEmail(email); // kullanıcıyı al
         Trend trend = trendRepository.getReferenceById(trendId);
-        Scenario scenario1 = scenarioRepository.findByTrendId(trendId);
-        if (scenario1 != null) {
-            scenarioRepository.deleteById(scenario1.getId());
-            saveScenarioDB(scenarioText, trend, user);
-
-        } else {
-            saveScenarioDB(scenarioText, trend, user);
+        Map<String, String> generatedScenarios = new LinkedHashMap<>();
+        Scenario scenario = scenarioRepository.findByTrendIdAndScenarioType(trendId, type);
+        List<Scenario> scenarioList = scenarioRepository.findAllByTrendId(trendId);
+        if (scenario != null) {
+            // Var olan senaryoyu güncelle
+            scenarioRepository.deleteById(scenario.getId());
         }
 
-
+        saveScenarioDB(scenarioText, trend, user, type); // type'ı da gönderiyoruz
+        scenarioList.forEach(scenario1 -> generatedScenarios.put(scenario1.getScenarioType(), scenario1.getScenarioText()));
+        model.addAttribute("scenarios", generatedScenarios);
         model.addAttribute("trend", trend);
-        model.addAttribute("scenarioText", scenarioText);
         model.addAttribute("message", "Scenario saved successfully.");
-
         return "show-scenario";
     }
 
-    private void saveScenarioDB(String scenarioText, Trend trend, Optional<User> user) {
+    private void saveScenarioDB(String scenarioText, Trend trend, Optional<User> user, String type) {
         Scenario scenario = new Scenario();
         scenario.setTrend(trend);
         scenario.setScenarioText(scenarioText);
         scenario.setUser(user.orElse(null));
         scenario.setIsPublished(false);
+        scenario.setScenarioType(type);
         scenarioRepository.save(scenario);
     }
 
     // ScenarioController.java
     @PostMapping("/publish/{trendId}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<?> publishScenario(@PathVariable Long trendId) {
-        Scenario scenario = scenarioRepository.findByTrendId(trendId);
+    public ResponseEntity<?> publishScenario(@PathVariable Long trendId, @RequestParam String type
+    ) {
+        Scenario scenario = scenarioRepository.findByTrendIdAndScenarioType(trendId, type);
         if (scenario != null) {
             scenario.setIsPublished(true);
             scenarioRepository.save(scenario);
