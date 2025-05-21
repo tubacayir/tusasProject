@@ -57,7 +57,7 @@ public class TrendController {
                 : trendService.searchByName(search);
 
         return trends.stream()
-                .map(t -> new TrendDTO(t.getId(), t.getTrendName(), t.getDefinition(), t.getAvgImpact()))
+                .map(t -> new TrendDTO(t.getId(), t.getTrendName(), t.getDefinition()))
                 .collect(Collectors.toList());
     }
     @GetMapping("/trends")

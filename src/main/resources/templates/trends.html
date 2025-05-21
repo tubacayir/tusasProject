@@ -193,7 +193,6 @@
         <tr>
             <th>Trend Name</th>
             <th>Definition</th>
-            <th>Average Impact</th>
             <th>Scenarios</th>
         </tr>
         </thead>
@@ -216,7 +215,6 @@
             row.innerHTML = `
                 <td>${trend.trendName}</td>
                 <td>${trend.definition}</td>
-                <td>${trend.avgImpact}</td>
                 <td>
                     <button class="btn-scenario" onclick="createScenario(${trend.id})">Create</button>
                     <button class="btn-scenario" onclick="showScenario(${trend.id})">Show</button>
