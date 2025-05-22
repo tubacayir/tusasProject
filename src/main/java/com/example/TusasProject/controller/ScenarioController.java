@@ -42,7 +42,6 @@ public class ScenarioController {
         Trend trend = trendRepository.getReferenceById(request.getTrendId());
         List<Driver> allDrivers = new ArrayList<>(driverRepository.findByTrendId(request.getTrendId()));
 
-        // Puanla ve sırala
         allDrivers.sort((o1, o2) -> {
             float impact1 = o1.getImpact() != null ? o1.getImpact() : 0f;
             float uncertainty1 = o1.getUncertainty() != null ? o1.getUncertainty() : 0f;
@@ -55,17 +54,14 @@ public class ScenarioController {
             return Double.compare(score2, score1); // yüksek skor önce
         });
 
-        // Kullanılmış driver'ları takip et
         Set<Long> usedDriverIds = new HashSet<>();
 
-        // Growth: En yüksek skorlu 2 driver
         List<Driver> growthDrivers = allDrivers.stream()
                 .filter(d -> !usedDriverIds.contains(d.getId()))
                 .limit(2)
                 .peek(d -> usedDriverIds.add(d.getId()))
                 .collect(Collectors.toList());
 
-        // Collapse: En düşük skorlu 2 driver + negatif polarity driver'lardan kalan ilk 2
         List<Driver> collapseDrivers = allDrivers.stream()
                 .filter(d -> !usedDriverIds.contains(d.getId()))
                 .sorted((d1, d2) -> {
@@ -176,7 +172,7 @@ public class ScenarioController {
         };
 
         // Flask API çağrısı
-        String flaskUrl = "https://e1df-34-143-203-58.ngrok-free.app/generate";
+        String flaskUrl = "https://304a-34-143-203-58.ngrok-free.app/generate";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -194,20 +190,9 @@ public class ScenarioController {
             String driversText = scenarioDrivers.stream()
                     .map(d -> {
                         String name = d.getDriverName();
-                        String category = d.getDriverCategory() != null ? "(" + d.getDriverCategory() + ")" : "";
-                        String impact = d.getImpact() != null ? "Impact Rate: " + d.getImpact().intValue() : "";
-                        String uncertainty = d.getUncertainty() != null ? "Uncertainty: " + d.getUncertainty().intValue() : "";
-                        String polarity = d.getPolarity() != null
-                                ? (d.getPolarity() == 1 ? "positive polarity"
-                                : d.getPolarity() == -1 ? "negative polarity"
-                                : "neutral polarity")
-                                : "";
-                        return String.format("%s %s [%s, %s, %s]",
-                                name,
-                                category,
-                                impact,
-                                uncertainty,
-                                polarity);
+                        return String.format("%s",
+                                name
+                                );
                     })
                     .collect(Collectors.joining("; "));
 
@@ -220,7 +205,6 @@ public class ScenarioController {
             try {
                 ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
                 Object body = response.getBody().get("responses");
-
                 if (body instanceof List<?> rawList && !rawList.isEmpty() && rawList.get(0) instanceof String scenario) {
                     generatedScenarios.put(scenarioType, scenario);
                 } else {
