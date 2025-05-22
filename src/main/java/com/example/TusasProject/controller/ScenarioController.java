@@ -131,9 +131,8 @@ public class ScenarioController {
         // Prompt oluşturucu fonksiyon
         Function<String, String> getPromptTemplate = scenarioType -> switch (scenarioType) {
             case "growth" -> """
-                    Write a forward-looking, optimistic scenario titled 'Growth' based on the trend and the key drivers listed below.
-                    Highlight opportunities, technological advances, and positive developments.
-                                
+                    Write a forward-looking and coherent narrative scenario titled 'Growth' that envisions a future shaped by positive trends and impactful drivers. Do not use bullet points or lists; instead, write a smooth, continuous narrative that flows naturally.
+
                     Trend: %s
 
                     Key Drivers:
@@ -141,8 +140,9 @@ public class ScenarioController {
 
                     Scenario:
                     """;
+
             case "collapse" -> """
-                    Write a critical, cautionary scenario titled 'Collapse' that explores risks, system breakdowns, or negative consequences driven by the factors below.
+                    Write a cautionary and realistic narrative scenario titled 'Collapse' that explores a future where key systems deteriorate due to critical challenges and risks. Focus on negative consequences and potential failures, but do not use bullet points or lists. Maintain a continuous and immersive storytelling style.
 
                     Trend: %s
 
@@ -151,8 +151,9 @@ public class ScenarioController {
 
                     Scenario:
                     """;
+
             case "discipline" -> """
-                    Write a disciplined and stable scenario titled 'Discipline' emphasizing strong governance, strategic planning, and risk mitigation.
+                    Write a structured and stable narrative scenario titled 'Discipline' where the future is shaped by strong governance, regulation, and responsible decision-making. Emphasize strategic planning, order, and resilience. Avoid using lists or numbers; present a fluid, coherent story.
 
                     Trend: %s
 
@@ -161,8 +162,9 @@ public class ScenarioController {
 
                     Scenario:
                     """;
+
             case "transformative" -> """
-                    Write a bold, innovative scenario titled 'Transformative' that envisions radical change and disruption sparked by the drivers below.
+                    Write a bold and visionary narrative scenario titled 'Transformative' that imagines a future defined by radical innovation and disruptive change. Highlight how the following drivers contribute to a dramatic transformation of systems and society. Write in a clear and uninterrupted narrative form without using lists.
 
                     Trend: %s
 
@@ -171,11 +173,12 @@ public class ScenarioController {
 
                     Scenario:
                     """;
+
             default -> "";
         };
 
         // Flask API çağrısı
-        String flaskUrl = "https://primary-skunk-allowing.ngrok-free.app/generate";
+        String flaskUrl = "https://715a-34-143-144-240.ngrok-free.app/generate";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -191,23 +194,51 @@ public class ScenarioController {
                 continue;
             }
 
-            // Driver metni
-            String driversText = IntStream.range(0, scenarioDrivers.size())
-                    .mapToObj(i -> (i + 1) + ". " + scenarioDrivers.get(i).getDriverName())
-                    .collect(Collectors.joining("\n"));
+            String driversText = scenarioDrivers.stream()
+                    .map(d -> {
+                        String name = d.getDriverName();
+                        String category = d.getDriverCategory() != null ? "(" + d.getDriverCategory() + ")" : "";
+                        String impact = d.getImpact() != null ? "Impact Rate: " + d.getImpact().intValue() : "";
+                        String uncertainty = d.getUncertainty() != null ? "Uncertainty: " + d.getUncertainty().intValue() : "";
+                        String polarity = d.getPolarity() != null
+                                ? (d.getPolarity() == 1 ? "positive polarity"
+                                : d.getPolarity() == -1 ? "negative polarity"
+                                : "neutral polarity")
+                                : "";
+
+                        return String.format("%s %s [%s, %s, %s]",
+                                name,
+                                category,
+                                impact,
+                                uncertainty,
+                                polarity);
+                    })
+                    .collect(Collectors.joining("; "));
+
 
             // Prompt oluştur
             String promptTemplate = getPromptTemplate.apply(scenarioType);
             String prompt = String.format(promptTemplate, trend.getTrendName(), driversText);
 
             // Flask API'ye gönder
-            Map<String, String> payload = Map.of("prompt", prompt);
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(payload, headers);
+            Map<String, Object> payload = Map.of("prompts", List.of(prompt));
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
             try {
                 ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
-                String scenario = (String) response.getBody().get("response");
-                generatedScenarios.put(scenarioType, scenario);
+                Object body = response.getBody().get("responses");
+
+                if (body instanceof List<?>) {
+                    List<?> rawList = (List<?>) body;
+                    if (!rawList.isEmpty() && rawList.get(0) instanceof String) {
+                        String scenario = (String) rawList.get(0);
+                        generatedScenarios.put(scenarioType, scenario);
+                    } else {
+                        generatedScenarios.put(scenarioType, "API yanıtı boş veya beklenen formatta değil.");
+                    }
+                } else {
+                    generatedScenarios.put(scenarioType, "API yanıtı beklenen 'responses' listesini içermiyor.");
+                }
             } catch (Exception e) {
                 generatedScenarios.put(scenarioType, "API Hatası: " + e.getMessage());
             }

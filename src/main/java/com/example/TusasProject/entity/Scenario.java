@@ -28,7 +28,9 @@ public class Scenario {
     @OneToMany(mappedBy = "scenario", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
     private String scenarioText;
+
 
     private String scenarioType;
 

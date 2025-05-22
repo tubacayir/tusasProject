@@ -52,12 +52,10 @@
 
         <!-- Menü -->
         <ul class="space-y-4">
-            <li><a href="/panel" class="hover">Technology Radar</a></li>
-
             <th:block th:if="${userRole == 'MANAGER'}">
                 <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
             </th:block>
-        </ul>
+            <button onclick="window.location.href='/panel'">← Tecnhological Radar</button>
         <!-- Logout Button -->
         <div class="absolute bottom-4 left-0 w-full px-4">
             <form th:action="@{/logout}" method="post">
