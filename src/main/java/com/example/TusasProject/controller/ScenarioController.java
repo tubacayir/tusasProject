@@ -12,13 +12,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/api/scenario")
@@ -91,7 +89,7 @@ public class ScenarioController {
                 .filter(d -> {
                     float impact = d.getImpact() != null ? d.getImpact() : 0f;
                     float uncertainty = d.getUncertainty() != null ? d.getUncertainty() : 0f;
-                    return impact >= 4.0 && uncertainty <= 2.0;
+                    return impact >= 3.0 && uncertainty <= 2.0;
                 })
                 .sorted((d1, d2) -> {
                     float score1 = d1.getImpact() - d1.getUncertainty();
@@ -108,7 +106,7 @@ public class ScenarioController {
                 .filter(d -> {
                     float impact = d.getImpact() != null ? d.getImpact() : 0f;
                     float uncertainty = d.getUncertainty() != null ? d.getUncertainty() : 0f;
-                    return impact <= 2.0 && uncertainty >= 4.0;
+                    return impact <= 2.0 && uncertainty >= 3.0;
                 })
                 .sorted((d1, d2) -> {
                     float score1 = d1.getUncertainty() - d1.getImpact();
@@ -131,7 +129,7 @@ public class ScenarioController {
         // Prompt oluşturucu fonksiyon
         Function<String, String> getPromptTemplate = scenarioType -> switch (scenarioType) {
             case "growth" -> """
-                    Write a forward-looking and coherent narrative scenario titled 'Growth' that envisions a future shaped by positive trends and impactful drivers. Do not use bullet points or lists; instead, write a smooth, continuous narrative that flows naturally.
+                    Write a forward-looking and coherent narrative scenario titled 'Growth' that envisions a future shaped by positive trends and impactful drivers. Do not use bullet points or lists; instead, write a smooth.Write in a clear and uninterrupted narrative form without using lists.y.
 
                     Trend: %s
 
@@ -142,7 +140,7 @@ public class ScenarioController {
                     """;
 
             case "collapse" -> """
-                    Write a cautionary and realistic narrative scenario titled 'Collapse' that explores a future where key systems deteriorate due to critical challenges and risks. Focus on negative consequences and potential failures, but do not use bullet points or lists. Maintain a continuous and immersive storytelling style.
+                    Write a cautionary and realistic narrative scenario titled 'Collapse' that explores a future where key systems deteriorate due to critical challenges and risks. Focus on negative consequences and potential failures, but do not use bullet points or lists. Write in a clear and uninterrupted narrative form without using lists..
 
                     Trend: %s
 
@@ -153,7 +151,7 @@ public class ScenarioController {
                     """;
 
             case "discipline" -> """
-                    Write a structured and stable narrative scenario titled 'Discipline' where the future is shaped by strong governance, regulation, and responsible decision-making. Emphasize strategic planning, order, and resilience. Avoid using lists or numbers; present a fluid, coherent story.
+                    Write a structured and stable narrative scenario titled 'Discipline' where the future is shaped by strong governance, regulation, and responsible decision-making. Emphasize strategic planning, order, and resilience. Write in a clear and uninterrupted narrative form without using lists.
 
                     Trend: %s
 
@@ -178,18 +176,17 @@ public class ScenarioController {
         };
 
         // Flask API çağrısı
-        String flaskUrl = "https://715a-34-143-144-240.ngrok-free.app/generate";
+        String flaskUrl = "https://e1df-34-143-203-58.ngrok-free.app/generate";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, String> generatedScenarios = new LinkedHashMap<>();
+// Her senaryo tipi için ayrı ayrı prompt oluştur ve Flask API'ye gönder
 
-        for (Map.Entry<String, List<Driver>> entry : scenarioDriversMap.entrySet()) {
-            String scenarioType = entry.getKey();
-            List<Driver> scenarioDrivers = entry.getValue();
-
-            if (scenarioDrivers.isEmpty()) {
+        for (String scenarioType : List.of("growth", "collapse", "discipline", "transformative")) {
+            List<Driver> scenarioDrivers = scenarioDriversMap.get(scenarioType);
+            if (scenarioDrivers == null || scenarioDrivers.isEmpty()) {
                 generatedScenarios.put(scenarioType, "Yeterli sayıda uygun driver bulunamadı.");
                 continue;
             }
@@ -205,7 +202,6 @@ public class ScenarioController {
                                 : d.getPolarity() == -1 ? "negative polarity"
                                 : "neutral polarity")
                                 : "";
-
                         return String.format("%s %s [%s, %s, %s]",
                                 name,
                                 category,
@@ -215,12 +211,9 @@ public class ScenarioController {
                     })
                     .collect(Collectors.joining("; "));
 
-
-            // Prompt oluştur
             String promptTemplate = getPromptTemplate.apply(scenarioType);
             String prompt = String.format(promptTemplate, trend.getTrendName(), driversText);
 
-            // Flask API'ye gönder
             Map<String, Object> payload = Map.of("prompts", List.of(prompt));
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
@@ -228,21 +221,18 @@ public class ScenarioController {
                 ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, entity, Map.class);
                 Object body = response.getBody().get("responses");
 
-                if (body instanceof List<?>) {
-                    List<?> rawList = (List<?>) body;
-                    if (!rawList.isEmpty() && rawList.get(0) instanceof String) {
-                        String scenario = (String) rawList.get(0);
-                        generatedScenarios.put(scenarioType, scenario);
-                    } else {
-                        generatedScenarios.put(scenarioType, "API yanıtı boş veya beklenen formatta değil.");
-                    }
+                if (body instanceof List<?> rawList && !rawList.isEmpty() && rawList.get(0) instanceof String scenario) {
+                    generatedScenarios.put(scenarioType, scenario);
                 } else {
-                    generatedScenarios.put(scenarioType, "API yanıtı beklenen 'responses' listesini içermiyor.");
+                    generatedScenarios.put(scenarioType, "API yanıtı boş veya beklenen formatta değil.");
                 }
             } catch (Exception e) {
                 generatedScenarios.put(scenarioType, "API Hatası: " + e.getMessage());
             }
         }
+
+
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         Optional<User> user = userRepository.findByEmail(email); // kullanıcıyı al
