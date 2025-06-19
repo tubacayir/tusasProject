@@ -36,6 +36,7 @@ public class ScenarioController {
     @Autowired
     private CommentRepository commentRepository;
 
+
     @PostMapping("/generate")
     @PreAuthorize("hasRole('MANAGER')")
     public String generateScenario(@RequestBody ScenarioGenerationRequest request, Model model) {
@@ -51,7 +52,7 @@ public class ScenarioController {
             double score1 = (impact1 + uncertainty1) / 2.0;
             double score2 = (impact2 + uncertainty2) / 2.0;
 
-            return Double.compare(score2, score1); // yüksek skor önce
+            return Double.compare(score2, score1);
         });
 
         Set<Long> usedDriverIds = new HashSet<>();
@@ -122,7 +123,6 @@ public class ScenarioController {
                 "transformative", transformativeDrivers
         );
 
-        // Prompt oluşturucu fonksiyon
         Function<String, String> getPromptTemplate = scenarioType -> switch (scenarioType) {
             case "growth" -> """
                     Write a forward-looking and coherent narrative scenario titled 'Growth' that envisions a future shaped by positive trends and impactful drivers. Do not use bullet points or lists; instead, write a smooth.Write in a clear and uninterrupted narrative form without using lists.y.
@@ -172,13 +172,12 @@ public class ScenarioController {
         };
 
         // Flask API çağrısı
-        String flaskUrl = "https://304a-34-143-203-58.ngrok-free.app/generate";
+        String flaskUrl = "https://6c2a-34-138-17-72.ngrok-free.app/generate";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, String> generatedScenarios = new LinkedHashMap<>();
-// Her senaryo tipi için ayrı ayrı prompt oluştur ve Flask API'ye gönder
 
         for (String scenarioType : List.of("growth", "collapse", "discipline", "transformative")) {
             List<Driver> scenarioDrivers = scenarioDriversMap.get(scenarioType);
@@ -307,19 +306,19 @@ public class ScenarioController {
         scenarioRepository.save(scenario);
     }
 
-    // ScenarioController.java
     @PostMapping("/publish/{trendId}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<?> publishScenario(@PathVariable Long trendId, @RequestParam String type
-    ) {
+    public ResponseEntity<?> publishScenario(@PathVariable Long trendId, @RequestParam String type) {
         Scenario scenario = scenarioRepository.findByTrendIdAndScenarioType(trendId, type);
-        if (scenario != null) {
-            scenario.setIsPublished(true);
-            scenarioRepository.save(scenario);
-            return ResponseEntity.ok().build();
-        } else {
+        if (scenario == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Scenario not found for this trend");
         }
+
+        scenario.setIsPublished(true);
+        scenario.setUpdatedAt(LocalDateTime.now());
+
+        scenarioRepository.save(scenario);
+        return ResponseEntity.ok("Scenario published successfully.");
     }
 
     @GetMapping("/published-scenarios")
@@ -332,26 +331,27 @@ public class ScenarioController {
             model.addAttribute("userRole", user.getRole().getName());
             model.addAttribute("userExpertise", user.getExpertise());
         }
+
         model.addAttribute("scenarios", publishedScenarios);
-
         return "published-scenarios";
-
     }
 
+
+    // 4️⃣ YORUM EKLE
     @PostMapping("/{id}/comment")
     public String addComment(@PathVariable Long id,
                              @RequestParam String content,
                              Principal principal) {
         User user = userRepository.findByEmail(principal.getName()).orElse(null);
         Scenario scenario = scenarioRepository.findById(id).orElseThrow();
+
         Comment comment = new Comment();
         comment.setText(content);
         comment.setUser(user);
         comment.setScenario(scenario);
         comment.setCreatedAt(LocalDateTime.now());
-        commentRepository.save(comment);
 
+        commentRepository.save(comment);
         return "redirect:/api/scenario/published-scenarios";
     }
-
 }

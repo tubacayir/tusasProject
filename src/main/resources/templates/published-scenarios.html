@@ -38,25 +38,23 @@
 <!-- Sidebar -->
 <aside class="w-[220px] bg-primary text-white min-h-screen fixed top-0 left-0 z-20 dark:bg-gray-800">
     <div class="p-4">
-        <!-- Logo -->
         <div class="mb-6">
             <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" class="w-full"/>
         </div>
-
-        <!-- Kullanıcı Bilgi Kutusu -->
         <div class="bg-white bg-opacity-10 p-3 rounded-lg mb-6 text-sm leading-relaxed">
             <p class="text-white">👤 <strong class="text-yellow-100" th:text="${userName}">Ad Soyad</strong></p>
             <p class="text-white">🔑 <strong class="text-yellow-100" th:text="${userRole}">Rol</strong></p>
             <p class="text-white"><strong class="text-yellow-100" th:text="${userExpertise}">Expertise</strong></p>
         </div>
-
-        <!-- Menü -->
         <ul class="space-y-4">
             <th:block th:if="${userRole == 'MANAGER'}">
-                <button onclick="window.location.href='/trends'">📈 Scenario Panel</button>
+                <li><a href="/trends" class="hover">📈 Scenario Panel</a></li>
             </th:block>
-            <button onclick="window.location.href='/panel'">← Tecnhological Radar</button>
-        <!-- Logout Button -->
+            <li><a href="/panel" class="hover">← Technological Radar</a></li>
+            <li><a href="/radar" class="hover">Defence</a></li>
+            <li><a href="/radar" class="hover">Aviation</a></li>
+            <li><a href="/published-scenarios" class="font-bold">📚 Published Scenarios</a></li>
+        </ul>
         <div class="absolute bottom-4 left-0 w-full px-4">
             <form th:action="@{/logout}" method="post">
                 <button type="submit"
@@ -65,16 +63,13 @@
                 </button>
             </form>
         </div>
-
     </div>
 </aside>
 
 <!-- Header -->
 <header class="bg-primary dark:bg-gray-800 shadow fixed w-full top-0 z-10 pl-[220px]">
     <div class="flex items-center justify-between px-6 py-4">
-        <div class="flex items-center space-x-3">
-            <!-- Logo kaldırıldı -->
-        </div>
+        <div></div>
         <div class="space-x-4 flex items-center">
             <input id="searchInput" type="text" placeholder="Search trends or scenarios..."
                    class="px-3 py-1 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -87,63 +82,48 @@
     </div>
 </header>
 
-<!-- Sidebar + Content -->
+<!-- Content -->
 <div class="flex pt-16">
-
-    <aside class="w-[220px] bg-primary text-white min-h-screen fixed top-0 left-0 dark:bg-gray-800 pt-4">
-        <div class="p-4">
-
-            <!-- Logo (sol üstte) -->
-            <div class="mb-6">
-                <img src="/images/800px-Tai_logo.png" alt="TUSAŞ Logo" class="w-full"/>
-            </div>
-
-            <!-- Kullanıcı Bilgi Kutusu -->
-            <div class="bg-white bg-opacity-10 p-3 rounded-lg mb-6 text-sm leading-relaxed">
-                <p class="text-white">👤 <strong class="text-yellow-100" th:text="${userName}">Ad Soyad</strong></p>
-                <p class="text-white">🔑 <strong class="text-yellow-100" th:text="${userRole}">Rol</strong></p>
-                <p class="text-white"><strong class="text-yellow-100" th:text="${userExpertise}">Expertise</strong></p>
-            </div>
-
-            <!-- Menü -->
-            <ul class="space-y-4">
-                <li><a href="/panel" class="hover">Technology Radar</a></li>
-                <li><a href="/published-scenarios" class="font-bold">Published Scenarios</a></li>
-                <li><a href="/radar" class="hover">Defence</a></li>
-                <li><a href="/radar" class="hover">Aviation</a></li>
-            </ul>
-
-        </div>
-    </aside>
-
     <main class="ml-[220px] w-full p-10">
-        <h1 class="text-4xl font-extrabold mb-10 text-gray-900 dark:text-white tracking-tight">📚 Published
-            Scenarios</h1>
+        <h1 class="text-4xl font-extrabold mb-10 text-gray-900 dark:text-white tracking-tight">📚 Published Scenarios</h1>
 
         <div id="scenarioContainer" class="space-y-10">
             <div th:each="scenario : ${scenarios}"
                  class="scenario-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 transition hover:shadow-xl">
-                <!-- Başlık -->
+
+                <!-- Image -->
+                <div th:if="${scenario.imageUrl != null}" class="mb-5 flex justify-center">
+                    <img th:src="${scenario.imageUrl}" alt="Generated Image"
+                         class="w-[500px] h-[500px] object-cover rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm"/>
+                </div>
+
+                <!-- Title -->
                 <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-3"
                     th:text="${scenario.trend.trendName}">Scenario Title</h2>
 
-                <!-- Açıklama -->
-                <p class="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed" th:text="${scenario.scenarioText}">
-                    Scenario description...</p>
+                <!-- Scenario Text -->
+                <p class="scenario-text text-gray-700 dark:text-gray-300 mb-4 leading-relaxed"
+                   th:text="${scenario.scenarioText}">
+                    Scenario description...
+                </p>
 
-                <!-- Güncellenme Tarihi -->
+                <!-- Updated Date -->
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 italic"
                    th:text="${T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy').format(scenario.updatedAt)}">
                     01 Jan 2024
                 </p>
 
-                <!-- Yorumlar -->
+                <!-- 🎨 Generate Image Button -->
+                <button type="button"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium mb-6"
+                        th:attr="onclick=|generateImage('${scenario.id}', event)|">
+                    🎨 Generate Image
+                </button>
+
+                <!-- Comments -->
                 <div>
                     <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">💬 Comments</h3>
-
-                    <div th:if="${scenario.comments.empty}" class="text-gray-500 italic dark:text-gray-400">No comments
-                        yet.
-                    </div>
+                    <div th:if="${scenario.comments.empty}" class="text-gray-500 italic dark:text-gray-400">No comments yet.</div>
 
                     <div th:each="comment : ${scenario.comments}"
                          class="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -154,8 +134,7 @@
                             <span class="text-gray-800 dark:text-white font-medium"
                                   th:text="${comment.user.getFirstName()+comment.user.getLastName()}">Username</span>
                         </div>
-                        <p class="text-gray-700 dark:text-gray-200 ml-12" th:text="${comment.text}">Comment content
-                            here.</p>
+                        <p class="text-gray-700 dark:text-gray-200 ml-12" th:text="${comment.text}">Comment content here.</p>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-12"
                            th:text="${T(java.time.format.DateTimeFormatter).ofPattern('dd MMM yyyy').format(comment.createdAt)}">
                             01 Jan 2024
@@ -163,21 +142,18 @@
                     </div>
                 </div>
 
-                <!-- Yorum Ekleme Formu -->
+                <!-- Comment Form -->
                 <form th:action="@{'/api/scenario/' + ${scenario.id} + '/comment'}" method="post"
                       class="mt-6 space-y-4">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-semibold">
                             <span th:text="${#strings.substring(userName, 0, 1)}">U</span>
                         </div>
-                        <span class="font-medium text-gray-800 dark:text-white"
-                              th:text="${userName}">Current User</span>
+                        <span class="font-medium text-gray-800 dark:text-white" th:text="${userName}">Current User</span>
                     </div>
-
                     <textarea name="content" placeholder="Write your comment..." rows="3"
                               class="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
                               required></textarea>
-
                     <button type="submit"
                             class="bg-primary hover:bg-secondary text-white px-5 py-2 rounded-md font-semibold transition-all">
                         Submit Comment
@@ -186,10 +162,9 @@
             </div>
         </div>
     </main>
-
 </div>
 
-<!-- 🔍 Live Search Script -->
+<!-- Scripts -->
 <script>
     function filterScenarios() {
         const input = document.getElementById("searchInput").value.toLowerCase();
@@ -197,30 +172,35 @@
 
         cards.forEach(card => {
             const title = card.querySelector("h2").innerText.toLowerCase();
-            const desc = card.querySelector("p").innerText.toLowerCase();
+            const desc = card.querySelector(".scenario-text").innerText.toLowerCase();
 
-            if (title.includes(input) || desc.includes(input)) {
-                card.style.display = "block";
-            } else {
-                card.style.display = "none";
-            }
+            card.style.display = (title.includes(input) || desc.includes(input)) ? "block" : "none";
         });
     }
 
-    function logout() {
-        fetch('/logout', {
+    function generateImage(scenarioId, event) {
+        fetch('/api/image/generate', {
             method: 'POST',
-            credentials: 'include'
-        }).then(() => {
-            window.location.href = '/login';
-        }).catch(err => {
-            alert("Logout failed!");
-            console.error(err);
-        });
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ scenarioId: scenarioId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                const scenarioCard = event.target.closest(".scenario-card");
+                const img = document.createElement("img");
+                img.src = data.imageUrl;
+                img.alt = "Generated Image";
+                img.className = "mt-4 w-full rounded border";
+                scenarioCard.appendChild(img);
+            })
+            .catch(error => {
+                console.error("Image generation error:", error);
+                alert("Image generation failed.");
+            });
     }
 </script>
 
 </body>
 </html>
-
-

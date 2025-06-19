@@ -40,6 +40,10 @@ public class Scenario {
 
     private LocalDateTime updatedAt;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
+
     public Scenario() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
