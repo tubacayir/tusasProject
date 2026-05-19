@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -35,7 +36,6 @@ public class ScenarioController {
 
     @Autowired
     private CommentRepository commentRepository;
-
 
     @PostMapping("/generate")
     @PreAuthorize("hasRole('MANAGER')")
@@ -171,7 +171,6 @@ public class ScenarioController {
             default -> "";
         };
 
-        // Flask API çağrısı
         String flaskUrl = "https://6c2a-34-138-17-72.ngrok-free.app/generate";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -191,7 +190,7 @@ public class ScenarioController {
                         String name = d.getDriverName();
                         return String.format("%s",
                                 name
-                                );
+                        );
                     })
                     .collect(Collectors.joining("; "));
 
@@ -213,7 +212,6 @@ public class ScenarioController {
                 generatedScenarios.put(scenarioType, "API Hatası: " + e.getMessage());
             }
         }
-
 
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -34,14 +34,7 @@ public class ImageGenerationService {
         headers.setBearerAuth(stabilityApiKey);
         headers.set("Accept", "application/json");
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("text_prompts", List.of(Map.of("text", prompt)));
-        payload.put("cfg_scale", 7);
-        payload.put("clip_guidance_preset", "FAST_BLUE");
-        payload.put("height", 1024);
-        payload.put("width", 1024);
-        payload.put("samples", 1);
-        payload.put("steps", 30);
+        Map<String, Object> payload = payloadConfig(prompt);
 
         try {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
@@ -59,6 +52,18 @@ public class ImageGenerationService {
         }
 
         return null;
+    }
+
+    private static Map<String, Object> payloadConfig(String prompt) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("text_prompts", List.of(Map.of("text", prompt)));
+        payload.put("cfg_scale", 7);
+        payload.put("clip_guidance_preset", "FAST_BLUE");
+        payload.put("height", 1024);
+        payload.put("width", 1024);
+        payload.put("samples", 1);
+        payload.put("steps", 30);
+        return payload;
     }
 
 

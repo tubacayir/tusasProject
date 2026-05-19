@@ -20,10 +20,10 @@ public class TrendImpactDTO {
         this.trend = trend;
         this.definition = definition;
         this.avgSocialImpact = avgSocialImpact;
-        this.avgEconomicImpact=avgEconomicImpact;
-        this.avgTechnologicalImpact=avgTechnologicalImpact;
-        this.avgEnvironmentalImpact=avgEnvironmentalImpact;
-        this.avgPoliticalImpact=avgPoliticalImpact;
+        this.avgEconomicImpact = avgEconomicImpact;
+        this.avgTechnologicalImpact = avgTechnologicalImpact;
+        this.avgEnvironmentalImpact = avgEnvironmentalImpact;
+        this.avgPoliticalImpact = avgPoliticalImpact;
     }
 
 
