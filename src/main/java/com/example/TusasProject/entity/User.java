@@ -16,14 +16,13 @@ public class User {
     private String expertise;
     private String password;
 
-    @ManyToOne(fetch = FetchType.EAGER)  // Eager: güvenlik için rol bilgisi hemen lazım olur
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
 
     public User() {
     }
 
-    // Getters & Setters
     public Integer getId() {
         return Math.toIntExact(id);
     }

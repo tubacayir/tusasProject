@@ -335,7 +335,6 @@ public class ScenarioController {
     }
 
 
-    // 4️⃣ YORUM EKLE
     @PostMapping("/{id}/comment")
     public String addComment(@PathVariable Long id,
                              @RequestParam String content,
