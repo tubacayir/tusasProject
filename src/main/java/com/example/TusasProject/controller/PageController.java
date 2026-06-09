@@ -1,6 +1,5 @@
 package com.example.TusasProject.controller;
 
-import com.example.TusasProject.entity.Trend;
 import com.example.TusasProject.entity.User;
 import com.example.TusasProject.repository.TrendRepository;
 import com.example.TusasProject.repository.UserRepository;
@@ -10,10 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
-import java.util.List;
-
-;
-
 
 @Controller
 public class PageController {
@@ -39,7 +34,7 @@ public class PageController {
             model.addAttribute("userExpertise", user.getExpertise());
         }
 
-        return "panel"; // src/main/resources/templates/panel.html
+        return "panel";
     }
 
     @GetMapping("/driver")

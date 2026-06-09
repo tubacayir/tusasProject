@@ -31,7 +31,6 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                 return;
             }
         }
-        // Default fallback
         response.sendRedirect("/panel");
     }
 }

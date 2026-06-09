@@ -13,6 +13,7 @@ public enum DriverCategory {
     private final String displayName;
     @Enumerated(EnumType.STRING)
     private DriverCategory category;
+
     DriverCategory(String displayName) {
         this.displayName = displayName;
     }

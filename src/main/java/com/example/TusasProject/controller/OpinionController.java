@@ -11,7 +11,8 @@ public class OpinionController {
 
     @Autowired
     OpinionService opinionService;
-@RequestMapping(value = "/comments", method = RequestMethod.POST)
+
+    @RequestMapping(value = "/comments", method = RequestMethod.POST)
     @ResponseBody
     public void registerUser(@RequestBody Opinion opinion) {
         opinionService.save(opinion);

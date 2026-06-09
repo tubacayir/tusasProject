@@ -11,9 +11,10 @@ public class Role {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name; // Örn: "ANALYST", "EXPERT"
+    private String name;
 
-    public Role() {}
+    public Role() {
+    }
 
     public Role(String name) {
         this.name = name;

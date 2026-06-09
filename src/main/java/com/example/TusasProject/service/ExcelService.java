@@ -40,13 +40,13 @@ public class ExcelService {
             while (rows.hasNext()) {
                 Row row = rows.next();
 
-                String trendName = row.getCell(0).getStringCellValue(); // Trend
-                String categoryValue = row.getCell(1).getStringCellValue(); // Category
-                String driverName = row.getCell(2).getStringCellValue(); // Driver
+                String trendName = row.getCell(0).getStringCellValue();
+                String categoryValue = row.getCell(1).getStringCellValue();
+                String driverName = row.getCell(2).getStringCellValue();
 
-                Double impact = getNumericCellValue(row, 3); // Impact_rate
-                Double uncertainty = getNumericCellValue(row, 4); // Uncertainty
-                Double polarity = getNumericCellValue(row, 5); // Polarity
+                Double impact = getNumericCellValue(row, 3);
+                Double uncertainty = getNumericCellValue(row, 4);
+                Double polarity = getNumericCellValue(row, 5);
 
                 List<Trend> trends = trendRepository.findByTrendNameIgnoreCase(trendName);
 
@@ -55,13 +55,13 @@ public class ExcelService {
                     continue;
                 }
 
-                Trend trend = trends.get(0); // İlk bulduğunu alıyoruz
+                Trend trend = trends.get(0);
                 DriverCategory category = DriverCategory.fromString(categoryValue);
 
                 Driver driver = new Driver();
                 driver.setDriverName(driverName);
                 driver.setTrend(trend);
-                if(category!=null) {
+                if (category != null) {
                     driver.setDriverCategory(category);
                     driver.setImpact(impact != null ? impact.floatValue() : null);
                     driver.setUncertainty(uncertainty != null ? uncertainty.floatValue() : null);
